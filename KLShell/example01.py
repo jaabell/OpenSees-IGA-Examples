@@ -58,7 +58,7 @@ controlPts = np.array([
     [La / 2, Lb / 2, 0, 1]
 ])
 
-print("controlPts.flatten(): ", controlPts.flatten())
+# print("controlPts.flatten(): ", controlPts.flatten())
 
 patchTag = 1
 P = 2
@@ -84,4 +84,8 @@ surf.knotvector_v = vKnot
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-ops.IGA("Patch", patchTag, P, Q, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+noPtsX = surf.ctrlpts_size_u
+noPtsY = surf.ctrlpts_size_v
+
+# ops.IGA("Patch", patchTag, P, Q, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
