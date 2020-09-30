@@ -82,10 +82,14 @@ surf.knotvector_v = vKnot
 
 
 # Visualize surface
-surfVisualize(surf, hold=True)
+# surfVisualize(surf, hold=True)
 
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
 # ops.IGA("Patch", patchTag, P, Q, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+
+print("\n\n\nPRINTING DOMAIN-----------------------")
+ops.printModel()
+print("\n\n\nDONE PRINTING DOMAIN-----------------------")
