@@ -87,9 +87,55 @@ surf.knotvector_v = vKnot
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
-# ops.IGA("Patch", patchTag, P, Q, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+
+
+# nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta $poisson_probeta
+E = 2.03e11  # Young's modulus N/m^2
+nu = 0.3  # Poisson's ratio
+rho = 7.7e03 #*9.807 # kg/m^3 
+t = 0.0254
+
+
+tagNDmat = 1
+ops.nDMaterial("ElasticIsotropic", tagNDmat, E, nu, rho)
+
+# nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
+tagPlateFiber = 2
+ops.nDMaterial("PlateFiber",tagPlateFiber, tagNDmat)
+
+
+# section PlateFiber $secTag_probeta $nDtag_platefiber $espesor_probeta
+tagSection = 1
+ops.section("PlateFiber", tagSection, tagPlateFiber, t)
+
+
+
+
+
+ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-type", "KLShell", "-sectionTag", tagSection, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
+
+
+
+# timeSeries Path $tsTag -time $times -values $vals 
+ops.eigen(10)
+
+# pattern Plain 1 $tsTag {
+#     # source "Prob4_base.pullnodes.tcl"
+#     # source "Prob4_base.pullnodes_load.tcl"
+#     load $mothernode 0 0 0.25 0 0 0   ;# El 0.25 aqui es porque es 1/4 de probeta
+# }
+# constraints Transformation
+# numberer RCM
+# system UmfPack
+# test NormDispIncr 1.0e-6 20 2
+# algorithm Newton
+# # algorithm NewtonLineSearch -type Secant
+# # algorithm NewtonLineSearch -type Bisection
+# # algorithm KrylovNewton
+# algorithm BFGS
+# integrator LoadControl [expr 1./$Nsteps]
+# analysis Static
