@@ -1,5 +1,6 @@
 import numpy as np
 import opensees as ops
+from math import *
 
 # Geomgl utilities for visualization and surface manipulation
 from geomdl import NURBS
@@ -114,14 +115,48 @@ ops.section("PlateFiber", tagSection, tagPlateFiber, t)
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-type", "KLShell", "-sectionTag", tagSection, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
+#Fijar nodos 1, 2, 3, 4
+for n in [1,2,3,4]:
+    ops.fix(n,1,1,1)
+
+
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
-
+ops.system("BandSPD")
+ops.numberer("RCM")
+ops.constraints("Plain")
+ops.integrator("Newmark", 0.5, 0.25)
+ops.algorithm("Linear")
+ops.analysis("Transient")
 
 # timeSeries Path $tsTag -time $times -values $vals 
-ops.eigen(10)
+nodes = ops.getNodeTags()
+
+Nnodes = len(nodes)
+Neigenvalues = 24  #  arpack can only compute N-1 eigvals
+
+w2s = ops.eigen(Neigenvalues)
+
+
+for i,w2 in enumerate(w2s):
+    w = sqrt(abs(w2))
+    f = w/2/pi
+    T = 1/f
+    print(f"{i} {w2} {w} {f} {T} ") 
+
+
+phi = np.zeros((3*Nnodes, Neigenvalues))
+
+for i,n in enumerate(nodes):
+    for j in range(Neigenvalues):
+        phi[3*i:3*i+3,j] = ops.nodeEigenvector(n, j+1)
+
+
+print(f"ϕ = {phi}")
+
+# ops.printModel()
 
 # pattern Plain 1 $tsTag {
 #     # source "Prob4_base.pullnodes.tcl"
