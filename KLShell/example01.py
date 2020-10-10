@@ -3,7 +3,7 @@ import opensees as ops
 from math import *
 
 # Geomgl utilities for visualization and surface manipulation
-from geomdl import NURBS
+from geomdl import NURBS, compatibility
 from surfVisualize import *
 
 
@@ -89,11 +89,11 @@ noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
 
-
-# nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta $poisson_probeta
+# nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
+# $poisson_probeta
 E = 2.03e11  # Young's modulus N/m^2
 nu = 0.3  # Poisson's ratio
-rho = 7.7e03 #*9.807 # kg/m^3 
+rho = 7.7e03  # *9.807 # kg/m^3
 t = 0.0254
 
 
@@ -102,59 +102,80 @@ ops.nDMaterial("ElasticIsotropic", tagNDmat, E, nu, rho)
 
 # nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
 tagPlateFiber = 2
-ops.nDMaterial("PlateFiber",tagPlateFiber, tagNDmat)
+ops.nDMaterial("PlateFiber", tagPlateFiber, tagNDmat)
 
 
 # section PlateFiber $secTag_probeta $nDtag_platefiber $espesor_probeta
 tagSection = 1
 ops.section("PlateFiber", tagSection, tagPlateFiber, t)
 
-
-
+controlPts = surf.ctrlpts2d[:]
+controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-type", "KLShell", "-sectionTag", tagSection, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
-#Fijar nodos 1, 2, 3, 4
-for n in [1,2,3,4]:
-    ops.fix(n,1,1,1)
+# #Fijar nodos 1, 2, 3, 4
+# for n in [1,2,3,4]:
+#     ops.fix(n,1,1,1)
 
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
-ops.system("BandSPD")
+# ops.system("BandSPD")
+ops.system("FullGeneral")
+
 ops.numberer("RCM")
 ops.constraints("Plain")
-ops.integrator("Newmark", 0.5, 0.25)
+# ops.integrator("Newmark", 0.5, 0.25)
 ops.algorithm("Linear")
 ops.analysis("Transient")
 
-# timeSeries Path $tsTag -time $times -values $vals 
+#Stiffness
+ops.integrator('GimmeMCK',0.0,0.0,1.0)
+ops.analyze(1,0.0)
+K=ops.printA('-ret')
+K=np.array(K)
+N=ops.systemSize()
+K.shape=(N,N)
+# print("K: ", K.shape)
+# print("K: ", K)
+
+np.save("K_ops.npy",K)
+
+# timeSeries Path $tsTag -time $times -values $vals
 nodes = ops.getNodeTags()
 
 Nnodes = len(nodes)
-Neigenvalues = 24  #  arpack can only compute N-1 eigvals
+Neigenvalues = 24  # arpack can only compute N-1 eigvals
 
 w2s = ops.eigen(Neigenvalues)
+order = np.argsort(w2s)
+w2s = np.array(w2s, dtype=np.float64)[order]
+# exit()
 
 
-for i,w2 in enumerate(w2s):
+for i, w2 in enumerate(w2s):
     w = sqrt(abs(w2))
-    f = w/2/pi
-    T = 1/f
-    print(f"{i} {w2} {w} {f} {T} ") 
+    T = 2 * pi / w
+    f = w / 2 / pi
+    W = 1 / T
+    print(f"{i} {w2} {w} {f} {T} ")
 
 
-phi = np.zeros((3*Nnodes, Neigenvalues))
+phi = np.zeros((3 * Nnodes, Neigenvalues))
 
-for i,n in enumerate(nodes):
+for i, n in enumerate(nodes):
     for j in range(Neigenvalues):
-        phi[3*i:3*i+3,j] = ops.nodeEigenvector(n, j+1)
+        phi[3 * i:3 * i + 3, j] = ops.nodeEigenvector(n, j + 1)
 
 
 print(f"ϕ = {phi}")
+
+
+
 
 # ops.printModel()
 
