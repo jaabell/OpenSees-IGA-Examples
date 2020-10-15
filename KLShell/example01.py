@@ -94,7 +94,7 @@ noPtsY = surf.ctrlpts_size_v
 E = 2.03e11  # Young's modulus N/m^2
 nu = 0.3  # Poisson's ratio
 rho = 7.7e03  # *9.807 # kg/m^3
-t = 0.0254
+t = 0.05
 
 
 tagNDmat = 1
@@ -124,24 +124,49 @@ print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
-ops.system("BandSPD")
-# ops.system("FullGeneral")
+# ops.system("BandSPD")
+ops.system("FullGeneral")
 
 ops.numberer("RCM")
 ops.constraints("Plain")
-ops.integrator("Newmark", 0.5, 0.25)
+# ops.integrator("Newmark", 0.5, 0.25)
 ops.algorithm("Linear")
 ops.analysis("Transient")
 
 # #Stiffness
-# ops.integrator('GimmeMCK',0.0,0.0,1.0)
-# ops.analyze(1,0.0)
-# K=ops.printA('-ret')
-# K=np.array(K)
-# N=ops.systemSize()
-# K.shape=(N,N)
-# # print("K: ", K.shape)
-# print("K: ", K)
+ops.integrator('GimmeMCK',0.0,0.0,1.0)
+ops.analyze(1,0.0)
+K=ops.printA('-ret')
+K=np.array(K)
+N=ops.systemSize()
+K.shape=(N,N)
+print("K: ", K)
+
+#Mass
+ops.integrator('GimmeMCK',1.0,0.0,0.0)
+ops.analyze(1,0.0)
+M=ops.printA('-ret')
+M=np.array(M)
+M.shape=(N,N)
+print("M: ", M)
+
+from scipy.sparse.linalg import eigsh
+import scipy as sp
+import numpy as np
+W, phi_full = eigsh(K, M=M, k=24, sigma=0, maxiter=1000000000)
+W = sp.sqrt(W)
+order = np.argsort(W)
+W = W[order].real
+T = 2 * sp.pi / W
+W = 1 / T
+for i in range(10):
+    print("Mode: ", i)
+    print("W[i]: ", W[i])
+    print("T[i]: ", T[i])
+    print("\n")
+
+ops.system("BandSPD")
+ops.integrator("Newmark", 0.5, 0.25)
 
 # np.save("K_ops.npy",K)
 
