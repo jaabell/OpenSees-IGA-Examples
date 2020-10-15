@@ -124,26 +124,26 @@ print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
-# ops.system("BandSPD")
-ops.system("FullGeneral")
+ops.system("BandSPD")
+# ops.system("FullGeneral")
 
 ops.numberer("RCM")
 ops.constraints("Plain")
-# ops.integrator("Newmark", 0.5, 0.25)
+ops.integrator("Newmark", 0.5, 0.25)
 ops.algorithm("Linear")
 ops.analysis("Transient")
 
-#Stiffness
-ops.integrator('GimmeMCK',0.0,0.0,1.0)
-ops.analyze(1,0.0)
-K=ops.printA('-ret')
-K=np.array(K)
-N=ops.systemSize()
-K.shape=(N,N)
-# print("K: ", K.shape)
+# #Stiffness
+# ops.integrator('GimmeMCK',0.0,0.0,1.0)
+# ops.analyze(1,0.0)
+# K=ops.printA('-ret')
+# K=np.array(K)
+# N=ops.systemSize()
+# K.shape=(N,N)
+# # print("K: ", K.shape)
 # print("K: ", K)
 
-np.save("K_ops.npy",K)
+# np.save("K_ops.npy",K)
 
 # timeSeries Path $tsTag -time $times -values $vals
 nodes = ops.getNodeTags()
@@ -159,9 +159,8 @@ w2s = np.array(w2s, dtype=np.float64)[order]
 
 for i, w2 in enumerate(w2s):
     w = sqrt(abs(w2))
-    T = 2 * pi / w
     f = w / 2 / pi
-    W = 1 / T
+    T = 1 / f
     print(f"{i} {w2} {w} {f} {T} ")
 
 
@@ -173,8 +172,6 @@ for i, n in enumerate(nodes):
 
 
 print(f"ϕ = {phi}")
-
-
 
 
 # ops.printModel()
