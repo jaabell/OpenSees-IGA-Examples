@@ -168,6 +168,8 @@ for i in range(10):
 ops.system("BandSPD")
 ops.integrator("Newmark", 0.5, 0.25)
 
+exit()
+
 # np.save("K_ops.npy",K)
 
 # timeSeries Path $tsTag -time $times -values $vals
