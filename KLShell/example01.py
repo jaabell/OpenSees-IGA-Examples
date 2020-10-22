@@ -97,23 +97,37 @@ rho = 7.7e03  # *9.807 # kg/m^3
 t = 0.05
 
 
-tagNDmat = 1
-ops.nDMaterial("ElasticIsotropic", tagNDmat, E, nu, rho)
+tagNDmat1 = 1
+ops.nDMaterial("ElasticIsotropic", tagNDmat, E1, nu, rho)
+
+tagNDmat2 = 2
+ops.nDMaterial("ElasticIsotropic", tagNDmat, E2, nu, rho)
+
 
 # nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
-tagPlateFiber = 2
-ops.nDMaterial("PlateFiber", tagPlateFiber, tagNDmat)
+tagPlaneStress1 = 3
+ops.nDMaterial("PlaneStress", tagPlaneStress, tagNDmat)
+
+tagPlaneStress2 = 4
+ops.nDMaterial("PlaneStress", tagPlaneStress, tagNDmat)
+
+matTags =   [   3,    4,     3,     4,     3,     4,     3]
+thickness = [1*mm, 2*mm, 1.*mm, 1.*mm, 1.*mm, 1.*mm, 1.*mm]
+θ =         [  0 ,   45,    90 ,  -45,     0,    45,   90]
 
 
-# section PlateFiber $secTag_probeta $nDtag_platefiber $espesor_probeta
-tagSection = 1
-ops.section("PlateFiber", tagSection, tagPlateFiber, t)
+Nlayers = len(thickness) = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, "-type", "KLShell", "-sectionTag", tagSection, "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, 
+    "-type", "KLShell", 
+    "-planeStressMatTags", matTags, 
+    "-theta", θ, 
+    "-thickness", thickness, 
+    "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
 # #Fijar nodos 1, 2, 3, 4
 # for n in [1,2,3,4]:
