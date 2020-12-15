@@ -33,6 +33,7 @@ def generateKnotVector(deg, nPts):
 La = 10.0  	#
 Lb = 10.0  	#
 t = 0.05  	# m
+mm=1.0/1000. # m
 
 
 ops.model('basic', '-ndm', 3, '-ndf', 3)
@@ -91,32 +92,35 @@ noPtsY = surf.ctrlpts_size_v
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E = 2.03e11  # Young's modulus N/m^2
+E1 = 2.03e11  # Young's modulus N/m^2
+E2=E1
 nu = 0.3  # Poisson's ratio
 rho = 7.7e03  # *9.807 # kg/m^3
 t = 0.05
 
 
 tagNDmat1 = 1
-ops.nDMaterial("ElasticIsotropic", tagNDmat, E1, nu, rho)
+ops.nDMaterial("ElasticIsotropic", tagNDmat1, E1, nu, rho)
 
 tagNDmat2 = 2
-ops.nDMaterial("ElasticIsotropic", tagNDmat, E2, nu, rho)
+ops.nDMaterial("ElasticIsotropic", tagNDmat2, E2, nu, rho)
 
 
 # nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
 tagPlaneStress1 = 3
-ops.nDMaterial("PlaneStress", tagPlaneStress, tagNDmat)
+ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
 
 tagPlaneStress2 = 4
-ops.nDMaterial("PlaneStress", tagPlaneStress, tagNDmat)
+ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 
-matTags =   [   3,    4,     3,     4,     3,     4,     3]
-thickness = [1*mm, 2*mm, 1.*mm, 1.*mm, 1.*mm, 1.*mm, 1.*mm]
-θ =         [  0 ,   45,    90 ,  -45,     0,    45,   90]
+deg2rad=pi/180
+
+matTags =   [3         , 4          , 3          , 4           , 3         , 4          , 3]
+thickness = [1.*mm     , 2*mm       , 1.*mm      , 1.*mm       , 1.*mm     , 1.*mm      , 1.*mm]
+θ =         [0*deg2rad , 45*deg2rad , 90*deg2rad , -45*deg2rad , 0*deg2rad , 45*deg2rad , 90*deg2rad]
 
 
-Nlayers = len(thickness) = len(θ)
+Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
@@ -124,9 +128,9 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, 
     "-type", "KLShell", 
-    "-planeStressMatTags", matTags, 
-    "-theta", θ, 
-    "-thickness", thickness, 
+    "-planeStressMatTags", *matTags, 
+    "-theta", *θ, 
+    "-thickness", *thickness, 
     "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
 # #Fijar nodos 1, 2, 3, 4
@@ -137,6 +141,9 @@ ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
+
+
+# exit()
 
 # ops.system("BandSPD")
 ops.system("FullGeneral")
