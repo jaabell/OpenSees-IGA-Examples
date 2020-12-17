@@ -33,7 +33,7 @@ def generateKnotVector(deg, nPts):
 La = 10.0  	#
 Lb = 10.0  	#
 t = 0.05  	# m
-mm=1.0/1000. # m
+mm = 1.0 / 1000.  # m
 
 
 ops.model('basic', '-ndm', 3, '-ndf', 3)
@@ -93,7 +93,7 @@ noPtsY = surf.ctrlpts_size_v
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
 E1 = 2.03e11  # Young's modulus N/m^2
-E2=E1
+E2 = E1
 nu = 0.3  # Poisson's ratio
 rho = 7.7e03  # *9.807 # kg/m^3
 t = 0.05
@@ -113,11 +113,13 @@ ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
 tagPlaneStress2 = 4
 ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 
-deg2rad=pi/180
+deg2rad = pi / 180
 
-matTags =   [3         , 4          , 3          , 4           , 3         , 4          , 3]
-thickness = [1.*mm     , 2*mm       , 1.*mm      , 1.*mm       , 1.*mm     , 1.*mm      , 1.*mm]
-θ =         [0*deg2rad , 45*deg2rad , 90*deg2rad , -45*deg2rad , 0*deg2rad , 45*deg2rad , 90*deg2rad]
+matTags = [3, 4, 3, 4, 3, 4, 3]
+thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
+θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad, 45 * deg2rad, 90 * deg2rad]
+θ = [45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad]
+
 
 
 Nlayers = len(θ)
@@ -126,12 +128,12 @@ controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY, 
-    "-type", "KLShell", 
-    "-planeStressMatTags", *matTags, 
-    "-theta", *θ, 
-    "-thickness", *thickness, 
-    "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
+        "-type", "KLShell",
+        "-planeStressMatTags", *matTags,
+        "-theta", *θ,
+        "-thickness", *thickness,
+        "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
 # #Fijar nodos 1, 2, 3, 4
 # for n in [1,2,3,4]:
@@ -155,20 +157,20 @@ ops.algorithm("Linear")
 ops.analysis("Transient")
 
 # #Stiffness
-ops.integrator('GimmeMCK',0.0,0.0,1.0)
-ops.analyze(1,0.0)
-K=ops.printA('-ret')
-K=np.array(K)
-N=ops.systemSize()
-K.shape=(N,N)
+ops.integrator('GimmeMCK', 0.0, 0.0, 1.0)
+ops.analyze(1, 0.0)
+K = ops.printA('-ret')
+K = np.array(K)
+N = ops.systemSize()
+K.shape = (N, N)
 print("K: ", K)
 
-#Mass
-ops.integrator('GimmeMCK',1.0,0.0,0.0)
-ops.analyze(1,0.0)
-M=ops.printA('-ret')
-M=np.array(M)
-M.shape=(N,N)
+# Mass
+ops.integrator('GimmeMCK', 1.0, 0.0, 0.0)
+ops.analyze(1, 0.0)
+M = ops.printA('-ret')
+M = np.array(M)
+M.shape = (N, N)
 print("M: ", M)
 
 from scipy.sparse.linalg import eigsh
@@ -189,7 +191,7 @@ for i in range(10):
 ops.system("BandSPD")
 ops.integrator("Newmark", 0.5, 0.25)
 
-exit()
+# exit()
 
 # np.save("K_ops.npy",K)
 
