@@ -92,10 +92,10 @@ noPtsY = surf.ctrlpts_size_v
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 2.03e11  # Young's modulus N/m^2
+E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
 nu = 0.3  # Poisson's ratio
-rho = 7.7e03  # *9.807 # kg/m^3
+rho = 8.0e+03  # *9.807 # kg/m^3
 t = 0.05
 
 
@@ -117,8 +117,13 @@ deg2rad = pi / 180
 
 matTags = [3, 4, 3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
-θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad, 45 * deg2rad, 90 * deg2rad]
-θ = [45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad, 45 * deg2rad]
+# θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad, 45 * deg2rad, 90 * deg2rad]
+
+matTags = [3]
+thickness = [50.0 * mm]
+
+
+θ = [0 * deg2rad]
 
 
 
@@ -199,7 +204,7 @@ ops.integrator("Newmark", 0.5, 0.25)
 nodes = ops.getNodeTags()
 
 Nnodes = len(nodes)
-Neigenvalues = 24  # arpack can only compute N-1 eigvals
+Neigenvalues = 30  # arpack can only compute N-1 eigvals
 
 w2s = ops.eigen(Neigenvalues)
 order = np.argsort(w2s)
