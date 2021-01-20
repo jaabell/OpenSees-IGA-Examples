@@ -115,15 +115,15 @@ ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 
 deg2rad = pi / 180
 
-matTags = [3, 4, 3, 4, 3, 4, 3]
-thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
-# θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad, 45 * deg2rad, 90 * deg2rad]
+matTags = [3, 4, 3, 4, 3]
+thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
+θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-matTags = [3]
-thickness = [50.0 * mm]
+# matTags = [3]
+# thickness = [50.0 * mm]
 
 
-θ = [0 * deg2rad]
+# θ = [0 * deg2rad]
 
 
 
@@ -161,7 +161,7 @@ ops.constraints("Plain")
 ops.algorithm("Linear")
 ops.analysis("Transient")
 
-# #Stiffness
+#Stiffness
 ops.integrator('GimmeMCK', 0.0, 0.0, 1.0)
 ops.analyze(1, 0.0)
 K = ops.printA('-ret')
