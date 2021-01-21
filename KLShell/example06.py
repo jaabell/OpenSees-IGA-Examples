@@ -53,9 +53,9 @@ def generateKnotVector(deg, nPts):
     return knotVector
 
 
-La = 10.0  	#
-Lb = 10.0  	#
-t = 0.05  	# m
+La = 10.0   #
+Lb = 10.0   #
+t = 0.05    # m
 mm = 1.0 / 1000.  # m
 
 
@@ -69,22 +69,22 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 uKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0])
 vKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0])
 controlPts = np.array([
-    [-La / 2, -Lb / 2, 0, 1],
-    [-La / 2, -Lb / 2 / 2, 0, 1],
-    [-La / 2, Lb / 2 / 2, 0, 1],
-    [-La / 2, Lb / 2, 0, 1],
-    [-La / 2 / 2, -Lb / 2, 0, 1],
-    [-La / 2 / 2, -Lb / 2 / 2, 0, 1],
-    [-La / 2 / 2, Lb / 2 / 2, 0, 1],
-    [-La / 2 / 2, Lb / 2, 0, 1],
-    [La / 2 / 2, -Lb / 2, 0, 1],
-    [La / 2 / 2, -Lb / 2 / 2, 0, 1],
-    [La / 2 / 2, Lb / 2 / 2, 0, 1],
-    [La / 2 / 2, Lb / 2, 0, 1],
-    [La / 2, -Lb / 2, 0, 1],
-    [La / 2, -Lb / 2 / 2, 0, 1],
-    [La / 2, Lb / 2 / 2, 0, 1],
-    [La / 2, Lb / 2, 0, 1]
+    [-La / 2, -Lb / 2, 0, 1],  # 1
+    [-La / 2, -Lb / 2 / 2, 0, 1],  # 2
+    [-La / 2, Lb / 2 / 2, 0, 1],  # 3
+    [-La / 2, Lb / 2, 0, 1],  # 4
+    [-La / 2 * 0.95, -Lb / 2, 0, 1],  # 5
+    [-La / 2 * 0.95, -Lb / 2 / 2, 0, 1],  # 6
+    [-La / 2 * 0.95, Lb / 2 / 2, 0, 1],  # 7
+    [-La / 2 * 0.95, Lb / 2, 0, 1],  # 8
+    [La / 2 / 2*0, -Lb / 2, 0, 1],  # 9
+    [La / 2 / 2*0, -Lb / 2 / 2, 0, 1],  # 10
+    [La / 2 / 2*0, Lb / 2 / 2, 0, 1],  # 11
+    [La / 2 / 2*0, Lb / 2, 0, 1],  # 12
+    [La / 2, -Lb / 2, 0, 1],  # 13
+    [La / 2, -Lb / 2 / 2, 0, 1],  # 14
+    [La / 2, Lb / 2 / 2, 0, 1],  # 15
+    [La / 2, Lb / 2, 0, 1]  # 16
 ])
 
 # print("controlPts.flatten(): ", controlPts.flatten())
@@ -132,13 +132,13 @@ controlPts, weights = getCtrlPtsAndWeights(surf)
 
 # Set degrees
 if refU == 0:
+    P = 2
+else:
     P = 3
-else:
-    P = 4
 if refV == 0:
-    Q = 3
+    Q = 2
 else:
-    Q = 4
+    Q = 3
 
 
 surf.degree_u = P
@@ -192,7 +192,7 @@ matTags = [3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-gFact = [0.0, 0.0, 0*9.807]
+gFact = [0.0, 0.0, 0 * 9.807]
 
 # matTags = [3]
 # thickness = [50.0 * mm]
@@ -209,16 +209,24 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        "-nonLinearGeometry", 0,
+        # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
-# Fijar nodos 
-# for n in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 19, 28, 37, 46, 55, 64, 73]:
-for n in [1,2,3,4,5,9,13]:
+# Fijar nodos
+
+# for n in [1, 5, 9, 13, 2, 6, 10, 14]:
+firstRigidLine = np.arange(1, noPtsX * noPtsY, noPtsX, dtype=int)
+secondRigidLine = firstRigidLine + 1
+
+rigidNodes = np.concatenate((firstRigidLine, secondRigidLine))
+print("rigidNodes: ", rigidNodes)
+
+for n in rigidNodes:
+    n = int(n)
     ops.fix(n, 1, 1, 1)
 
 
@@ -233,9 +241,10 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 # Create the nodal load - command: load nodeID xForce yForce
-Pz=500.0
-nodeLoad=16
-ops.load(nodeLoad, 0.0, 0.0, Pz)
+Pz = 10000.0 / len(firstRigidLine)
+for n in firstRigidLine:
+    nodeToLoad = int(n + noPtsX - 1)
+    ops.load(nodeToLoad, 0.0, 0.0, Pz)
 
 
 # ------------------------------
@@ -251,44 +260,48 @@ ops.numberer("RCM")
 # create constraint handler
 ops.constraints("Plain")
 
+# Create test
+ops.test("NormDispIncr", 1.0e-9, 40, 1)
+# ops.test("NormUnbalance",1e-8,10)
+
 # create algorithm
-ops.algorithm("Linear")
+# ops.algorithm("Linear")
 # ops.algorithm("Newton")
+ops.algorithm("ModifiedNewton")
+# ops.algorithm("KrylovNewton")
 
 # create integrator
-nSteps=100
-ops.integrator("LoadControl", 1.0/nSteps)
+# nSteps=10
+# ops.integrator("LoadControl", 1.0/nSteps)
+ops.integrator("LoadControl", 1.0)
 
-# Create test
-ops.test("NormDispIncr",1.0e-9,20)
-# ops.test("NormUnbalance",1e-8,10)
+
 
 # create analysis object
 ops.analysis("Static")
 
-# perform the analysis
-import matplotlib.pyplot as plt
-data=np.zeros((nSteps+1,2))
-for j in range(nSteps):
-    ops.analyze(1)
-    data[j+1,0] = ops.nodeDisp(nodeLoad,3)
-    data[j+1,1] = ops.getLoadFactor(1)*Pz
+ops.analyze(1)
 
-plt.plot(data[:,0], data[:,1])
-plt.xlabel('Vertical Displacement')
-plt.ylabel('Vertical Load')
-plt.show()
+# # perform the analysis
+# import matplotlib.pyplot as plt
+# data=np.zeros((nSteps+1,2))
+# for j in range(nSteps):
+#     ops.analyze(1)
+#     data[j+1,0] = ops.nodeDisp(nodeLoad,3)
+#     data[j+1,1] = ops.getLoadFactor(1)*Pz
+
+# plt.plot(data[:,0], data[:,1])
+# plt.xlabel('Vertical Displacement')
+# plt.ylabel('Vertical Load')
+# plt.show()
 
 
-fDef = 100
+fDef = 10
 i = 1
 for dim in controlPts:
     for point in dim:
         point[:3] += fDef * np.array(ops.nodeDisp(i))
         i += 1
-
-
-
 
 
 # controlPts = surf.ctrlpts2d[:]

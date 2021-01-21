@@ -53,9 +53,9 @@ def generateKnotVector(deg, nPts):
     return knotVector
 
 
-La = 1.0  	#
-Lb = 10.0  	#
-t = 0.05  	# m
+La = 10.0   #
+Lb = 10.0   #
+t = 0.05    # m
 mm = 1.0 / 1000.  # m
 
 
@@ -110,8 +110,8 @@ vKnot = generateKnotVector(surf.degree_u, 4)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
-# Visualize surface
-surfVisualize(surf, hold=True)
+# # Visualize surface
+# surfVisualize(surf, hold=True)
 
 # Refine knot vectors and update geometry (refine both directions)
 # u,v
@@ -134,11 +134,11 @@ controlPts, weights = getCtrlPtsAndWeights(surf)
 if refU == 0:
     P = 3
 else:
-    P = 3
+    P = 4
 if refV == 0:
     Q = 3
 else:
-    Q = 3
+    Q = 4
 
 
 surf.degree_u = P
@@ -157,8 +157,8 @@ noGPs = P + 1
 noCtrPts = len(controlPts)
 noDofs = noCtrPts * 3  # three displacement dofs per node
 
-# Visualize surface
-surfVisualize(surf, hold=True)
+# # Visualize surface
+# surfVisualize(surf, hold=True)
 
 # exit()
 
@@ -209,7 +209,7 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
+        "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
@@ -217,7 +217,7 @@ ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
 # Fijar nodos 
-# for n in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
+# for n in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 19, 28, 37, 46, 55, 64, 73]:
 for n in [1,2,3,4,5,9,13]:
     ops.fix(n, 1, 1, 1)
 
@@ -233,7 +233,10 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 # Create the nodal load - command: load nodeID xForce yForce
-ops.load(16, 0.0, 0.0, -1000.0)
+Pz=500.0
+nodeLoad=16
+ops.load(nodeLoad, 0.0, 0.0, Pz)
+
 
 # ------------------------------
 # Start of analysis generation
@@ -253,19 +256,34 @@ ops.constraints("Plain")
 ops.algorithm("Newton")
 
 # create integrator
+# nSteps=10
+# ops.integrator("LoadControl", 1.0/nSteps)
 ops.integrator("LoadControl", 1.0)
 
 # Create test
 ops.test("NormDispIncr",1.0e-9,20)
+# ops.test("NormUnbalance",1e-8,10)
 
 # create analysis object
 ops.analysis("Static")
 
-# perform the analysis
 ops.analyze(1)
 
+# # perform the analysis
+# import matplotlib.pyplot as plt
+# data=np.zeros((nSteps+1,2))
+# for j in range(nSteps):
+#     ops.analyze(1)
+#     data[j+1,0] = ops.nodeDisp(nodeLoad,3)
+#     data[j+1,1] = ops.getLoadFactor(1)*Pz
 
-fDef = 150
+# plt.plot(data[:,0], data[:,1])
+# plt.xlabel('Vertical Displacement')
+# plt.ylabel('Vertical Load')
+# plt.show()
+
+
+fDef = 10
 i = 1
 for dim in controlPts:
     for point in dim:
