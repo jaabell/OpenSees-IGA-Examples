@@ -209,7 +209,7 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        "-nonLinearGeometry", 0,
+        # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
@@ -233,7 +233,7 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 # Create the nodal load - command: load nodeID xForce yForce
-Pz=500.0
+Pz=6000.0
 nodeLoad=16
 ops.load(nodeLoad, 0.0, 0.0, Pz)
 
@@ -252,11 +252,11 @@ ops.numberer("RCM")
 ops.constraints("Plain")
 
 # create algorithm
-ops.algorithm("Linear")
-# ops.algorithm("Newton")
+# ops.algorithm("Linear")
+ops.algorithm("Newton")
 
 # create integrator
-nSteps=100
+nSteps=20
 ops.integrator("LoadControl", 1.0/nSteps)
 
 # Create test
@@ -280,7 +280,7 @@ plt.ylabel('Vertical Load')
 plt.show()
 
 
-fDef = 100
+fDef = 1
 i = 1
 for dim in controlPts:
     for point in dim:

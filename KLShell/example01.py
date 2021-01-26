@@ -3,8 +3,30 @@ import opensees as ops
 from math import *
 
 # Geomgl utilities for visualization and surface manipulation
-from geomdl import NURBS, compatibility
+from geomdl import NURBS, compatibility, operations
 from surfVisualize import *
+
+
+def getCtrlPtsAndWeights(surf):
+    # Flip control points to [u][v] (they are given by the getters in [v][u])
+    noPtsX = surf.ctrlpts_size_u
+    noPtsY = surf.ctrlpts_size_v
+    weights = surf.weights
+    controlPts = surf.ctrlpts2d[:]
+    controlPts = compatibility.flip_ctrlpts2d(controlPts)
+    controlPts = (np.array(controlPts).reshape(noPtsX * noPtsY, 4)).tolist()
+    noCtrPts = len(controlPts)
+
+    # Get separate array of control points in u,v and weights
+
+    for i in range(len(controlPts)):
+        pt = controlPts[i][:]
+        wt = pt[-1]
+        pt[0:3] = np.array(pt[0:3]) / wt
+        controlPts[i] = pt[0:3]
+        weights[i] = wt
+
+    return controlPts, weights
 
 
 def generateKnotVector(deg, nPts):
@@ -39,32 +61,44 @@ mm = 1.0 / 1000.  # m
 ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 
-uKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, ])
-vKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, ])
+# uKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, ])
+# vKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, ])
+# controlPts = np.array([
+#     [-La / 2       , -Lb / 2     , 0 , 1] ,
+#     [-La / 2       , -Lb / 2 / 2 *0 , 0 , 1] ,
+#     [-La / 2       , Lb / 2 / 2  , 0 , 1] ,
+#     [-La / 2       , Lb / 2      , 0 , 1] ,
+#     [-La / 2 / 2*0 , -Lb / 2     , 0 , 1] ,
+#     [-La / 2 / 2*0 , -Lb / 2 / 2 *0, 0 , 1] ,
+#     [-La / 2 / 2*0 , Lb / 2 / 2  , 0 , 1] ,
+#     [-La / 2 / 2*0 , Lb / 2      , 0 , 1] ,
+#     [La / 2 / 2    , -Lb / 2     , 0 , 1] ,
+#     [La / 2 / 2    , -Lb / 2 / 2 *0, 0 , 1] ,
+#     [La / 2 / 2    , Lb / 2 / 2  , 0 , 1] ,
+#     [La / 2 / 2    , Lb / 2      , 0 , 1] ,
+#     [La / 2        , -Lb / 2     , 0 , 1] ,
+#     [La / 2        , -Lb / 2 / 2*0 , 0 , 1] ,
+#     [La / 2        , Lb / 2 / 2  , 0 , 1] ,
+#     [La / 2        , Lb / 2      , 0 , 1]
+# ])
+
 controlPts = np.array([
-    [-La / 2, -Lb / 2, 0, 1],
-    [-La / 2, -Lb / 2 / 2, 0, 1],
-    [-La / 2, Lb / 2 / 2, 0, 1],
-    [-La / 2, Lb / 2, 0, 1],
-    [-La / 2 / 2, -Lb / 2, 0, 1],
-    [-La / 2 / 2, -Lb / 2 / 2, 0, 1],
-    [-La / 2 / 2, Lb / 2 / 2, 0, 1],
-    [-La / 2 / 2, Lb / 2, 0, 1],
-    [La / 2 / 2, -Lb / 2, 0, 1],
-    [La / 2 / 2, -Lb / 2 / 2, 0, 1],
-    [La / 2 / 2, Lb / 2 / 2, 0, 1],
-    [La / 2 / 2, Lb / 2, 0, 1],
-    [La / 2, -Lb / 2, 0, 1],
-    [La / 2, -Lb / 2 / 2, 0, 1],
-    [La / 2, Lb / 2 / 2, 0, 1],
-    [La / 2, Lb / 2, 0, 1]
+    [-La / 2    , -Lb / 2    , 0 , 1] ,
+    [-La / 2    , 0          , 0 , 1] ,
+    [-La / 2    , Lb / 2     , 0 , 1] ,
+    [0          , -Lb / 2    , 0 , 1] ,
+    [0          , 0          , 0 , 1] ,
+    [0          , Lb / 2     , 0 , 1] ,
+    [La / 2     , -Lb / 2    , 0 , 1] ,
+    [La / 2     , 0          , 0 , 1] ,
+    [La / 2     , Lb / 2     , 0 , 1]
 ])
 
 # print("controlPts.flatten(): ", controlPts.flatten())
 
 patchTag = 1
 P = 2
-Q = 2
+Q = 1
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -74,20 +108,65 @@ surf.degree_u = P
 surf.degree_v = Q
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts.tolist(), 4, 4)
+surf.set_ctrlpts(controlPts.tolist(), 3, 3)
 
 # Set knot vectors
-uKnot = generateKnotVector(surf.degree_u, 4)
-vKnot = generateKnotVector(surf.degree_u, 4)
+uKnot = generateKnotVector(surf.degree_u, 3)
+vKnot = generateKnotVector(surf.degree_v, 3)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 
 # Visualize surface
-# surfVisualize(surf, hold=True)
+surfVisualize(surf, hold=True)
 
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
+
+# Refine knot vectors and update geometry (refine both directions)
+# u,v
+refU = 1
+refV = 0
+operations.refine_knotvector(surf, [refU, refV])
+
+# Get new control points and weights after refining
+weights = surf.weights
+controlPts = surf.ctrlpts2d[:]
+
+# Update geometry after refining
+noPtsX = surf.ctrlpts_size_u
+noPtsY = surf.ctrlpts_size_v
+
+# Flip control points to [u][v] (they are given by the getters in [v][u])
+controlPts, weights = getCtrlPtsAndWeights(surf)
+
+# Set degrees
+if refU == 0:
+    P = 2
+else:
+    P = 3
+if refV == 0:
+    Q = 2
+else:
+    Q = 3
+
+P=2
+Q=1
+
+surf.degree_u = P
+surf.degree_v = Q
+
+uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
+surf.knotvector_u = uKnot
+vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
+surf.knotvector_v = vKnot
+
+noPtsX = surf.ctrlpts_size_u
+noPtsY = surf.ctrlpts_size_v
+
+# Visualize surface
+surfVisualize(surf, hold=True)
+# exit()
 
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
@@ -95,7 +174,7 @@ noPtsY = surf.ctrlpts_size_v
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
 nu = 0.3  # Poisson's ratio
-rho = 8.0e+03  # *9.807 # kg/m^3
+rho = 8.0e3  # *9.807 # kg/m^3
 t = 0.05
 
 
@@ -119,7 +198,7 @@ matTags = [3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-gFact = [0.0, 0.0, 9.807]
+gFact = [0.0, 0.0, 0 * 9.807]
 
 # matTags = [3]
 # thickness = [50.0 * mm]
@@ -136,17 +215,20 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
+        "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
-# #Fijar nodos 1, 2, 3, 4
-# for n in [1,2,3,4]:
-#     ops.fix(n,1,1,1)
+# exit()
 
+# # #Fijar nodos 1, 2, 3, 4
+# for n in range(noPtsX*noPtsY):
+#     print("n+1: ", n+1)
+#     ops.fix(n+1,1,1,0)
+# exit()
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
@@ -190,16 +272,18 @@ order = np.argsort(W)
 W = W[order].real
 T = 2 * sp.pi / W
 W = 1 / T
-for i in range(10):
+realW = [1.622, 2.36, 2.922, 4.23, 4.233, 7.42]
+for i in range(6, 12):
     print("Mode: ", i)
     print("W[i]: ", W[i])
-    print("T[i]: ", T[i])
+    print("realW[i-6]: ", realW[i - 6])
+    print("(W[i]-realW[i-6])/realW[i-6]*100: ", 100 * (W[i] - realW[i - 6]) / realW[i - 6], "%")
     print("\n")
 
 ops.system("BandSPD")
 ops.integrator("Newmark", 0.5, 0.25)
 
-# exit()
+exit()
 
 # np.save("K_ops.npy",K)
 

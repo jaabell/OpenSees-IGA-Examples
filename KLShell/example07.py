@@ -53,7 +53,7 @@ def generateKnotVector(deg, nPts):
     return knotVector
 
 
-La = 5.0   #
+La = 1.0   #
 Lb = 1.0   #
 t = 0.05    # m
 mm = 1.0 / 1000.  # m
@@ -69,18 +69,18 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 uKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0])
 vKnot = np.array([0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0])
 controlPts = np.array([
-    [-La / 2, -Lb / 2, 0, 1],  # 1
-    [-La / 2, -Lb / 2 / 2, 0, 1],  # 2
-    [-La / 2, Lb / 2 / 2, 0, 1],  # 3
-    [-La / 2, Lb / 2, 0, 1],  # 4
-    [-La / 2 * 0.99, -Lb / 2, 0, 1],  # 5
-    [-La / 2 * 0.99, -Lb / 2 / 2, 0, 1],  # 6
-    [-La / 2 * 0.99, Lb / 2 / 2, 0, 1],  # 7
-    [-La / 2 * 0.99, Lb / 2, 0, 1],  # 8
-    [La / 2 / 2 * 0, -Lb / 2, 0, 1],  # 9
-    [La / 2 / 2 * 0, -Lb / 2 / 2, 0, 1],  # 10
-    [La / 2 / 2 * 0, Lb / 2 / 2, 0, 1],  # 11
-    [La / 2 / 2 * 0, Lb / 2, 0, 1],  # 12
+    [-La / 2*1.001, -Lb / 2, 0, 1],  # 1
+    [-La / 2*1.001, -Lb / 2 / 2, 0, 1],  # 2
+    [-La / 2*1.001, Lb / 2 / 2, 0, 1],  # 3
+    [-La / 2*1.001, Lb / 2, 0, 1],  # 4
+    [-La / 2 , -Lb / 2, 0, 1],  # 5
+    [-La / 2 , -Lb / 2 / 2, 0, 1],  # 6
+    [-La / 2 , Lb / 2 / 2, 0, 1],  # 7
+    [-La / 2 , Lb / 2, 0, 1],  # 8
+    [0, -Lb / 2, 0, 1],  # 9
+    [0, -Lb / 2 / 2, 0, 1],  # 10
+    [0, Lb / 2 / 2, 0, 1],  # 11
+    [0, Lb / 2, 0, 1],  # 12
     [La / 2, -Lb / 2, 0, 1],  # 13
     [La / 2, -Lb / 2 / 2, 0, 1],  # 14
     [La / 2, Lb / 2 / 2, 0, 1],  # 15
@@ -111,12 +111,12 @@ surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 # # Visualize surface
-# surfVisualize(surf, hold=True)
+surfVisualize(surf, hold=True)
 
 # Refine knot vectors and update geometry (refine both directions)
 # u,v
-refU = 1
-refV = 1
+refU = 0
+refV = 0
 operations.refine_knotvector(surf, [refU, refV])
 
 # Get new control points and weights after refining
@@ -158,14 +158,13 @@ noCtrPts = len(controlPts)
 noDofs = noCtrPts * 3  # three displacement dofs per node
 
 # # Visualize surface
-# surfVisualize(surf, hold=True)
+surfVisualize(surf, hold=True)
 # exit()
 
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
 E1 = 2.1e11   # Young's modulus N/m^2
-E1 = 2.1e6   # Young's modulus N/m^2
 E2 = E1
 nu = 0.3  # Poisson's ratio
 rho = 8.0e+03  # *9.807 # kg/m^3
@@ -194,9 +193,9 @@ thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 
 gFact = [0.0, 0.0, 0 * 9.807]
 
-matTags = [3]
-thickness = [1000.0 * mm]
-θ = [0 * deg2rad]
+# matTags = [3]
+# thickness = [1000.0 * mm]
+# θ = [0 * deg2rad]
 
 
 Nlayers = len(θ)
@@ -273,7 +272,7 @@ ops.numberer("RCM")
 ops.constraints("Plain")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-9, 30, 1)
+ops.test("NormDispIncr", 1.0e-7, 30, 1)
 # ops.test("NormUnbalance",1e-8,10)
 
 # create algorithm
@@ -308,7 +307,7 @@ ops.analyze(1)
 # plt.show()
 
 
-fDef = 1e2
+fDef = 1e0
 i = 1
 for dim in controlPts:
     for point in dim:
@@ -325,7 +324,7 @@ controlPts = (np.array(controlPts).reshape(
 surf.set_ctrlpts(controlPts, surf.ctrlpts_size_v, surf.ctrlpts_size_u)
 
 # Visualize surface
-# surfVisualize(surf, hold=True)
+surfVisualize(surf, hold=True)
 print("Finished")
 for n in firstRigidLine:
     nodeToLoad = int(n + noPtsX - 1)
