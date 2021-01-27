@@ -63,7 +63,7 @@ mm = 1.0 / 1000.  # m
 ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 R=25
-L=25
+L=50
 phi=40
 deg2rad = pi / 180
 
@@ -74,58 +74,62 @@ controlPts=np.zeros((4,3,3))
 x1=np.sqrt(R**2+R**2*np.tan(deg2rad*20)**2)
 
 point0=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), 0, 1]
-point1=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), 0, 1]
+point1=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), 0, 1]
 point2=[0,R,0,1]
+point3=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), 0, 1]
+point4=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), 0, 1]
+
 
 # Second zKnot
 z=L/2
 
-point3=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
-point4=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
-point5=[0,R,z,1]
+# point3=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
+# point4=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
+# point5=[0,R,z,1]
+
+point5=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), z, 1]
+point6=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), z, 1]
+point7=[0,R,z,1]
+point8=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), z, 1]
+point9=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), z, 1]
 
 # Third zKnot
 z=L
 
-point6=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
-point7=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
-point8=[0,R,z,1]
+# point6=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
+# point7=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
+# point8=[0,R,z,1]
+
+point10=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), z, 1]
+point11=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), z, 1]
+point12=[0,R,z,1]
+point13=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), z, 1]
+point14=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), z, 1]
 
 # Weights
 fac=np.cos(deg2rad*(phi/2))
 point1[3]=fac
-point4[3]=fac
+point2[3]=fac
+point3[3]=fac
+
+point6[3]=fac
 point7[3]=fac
+point8[3]=fac
 
-for i in range(3):
-    point1[i]*=fac
-    point4[i]*=fac
-    point7[i]*=fac
+point11[3]=fac
+point12[3]=fac
+point13[3]=fac
 
-# for i in range(3):
-#     point0[i]/=point0[3]
-#     point1[i]/=point1[3]
-#     point2[i]/=point2[3]
-#     point3[i]/=point3[3]
-#     point4[i]/=point4[3]
-#     point5[i]/=point5[3]
-#     point6[i]/=point6[3]
-#     point7[i]/=point7[3]
-#     point8[i]/=point8[3]
+controlPts=[point0,point1,point2,point3,point4,point5,point6,point7,point8,point9,point10,point11,point12,point13,point14]
 
+for point in controlPts:
+    for i in range(3):
+        point[i]*=point[3]
 
-print("point0: ", point0)
-print("point1: ", point1)
-print("point2: ", point2)
-print("point3: ", point3)
-print("point4: ", point4)
-print("point5: ", point5)
-print("point6: ", point6)
-print("point7: ", point7)
-print("point8: ", point8)
+# Fix points 2, 7, 12
+for n in [2,7,12]:
+    controlPts[n][1]/=controlPts[n][3]
 
-controlPts=[point0,point1,point2,point3,point4,point5,point6,point7,point8]
-# controlPts=[point0,point3,point6,point1,point4,point7,point2,point5,point8]
 # These are given in v,u
 
 
@@ -141,7 +145,7 @@ surf.degree_u = P
 surf.degree_v = Q
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts, 3, 3)
+surf.set_ctrlpts(controlPts, 3, 5)
 
 # Set knot vectors
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -150,21 +154,18 @@ vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
-print("uKnot: ", uKnot)
-print("vKnot: ", vKnot)
-
 
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
 # Visualize surface
 surfVisualize(surf, hold=True)
-exit()
+# 
 
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 2.1e11  # Young's modulus N/m^2
+E1 = 4.32e8  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
 rho = 8.0e3  # *9.807 # kg/m^3
@@ -215,7 +216,7 @@ ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
-# exit()
+exit()
 
 
 for n in [1,2,3,4,5,6,7,8]:

@@ -154,7 +154,7 @@ print("controlPts.tolist(): ", controlPts.tolist())
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        "-nonLinearGeometry", 0,
+        # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
@@ -190,58 +190,54 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 # Cargar nodos 7,8
-Pz=0.5e3
+Pz=0.5e2
 for n in [7,8]:
     ops.load(n,0,0,Pz)
 print("Finished loading nodes")
 
-# create SOE
-ops.system("FullGeneral")
 
-# create DOF number
-# ops.numberer("RCM")
-ops.numberer("Plain")
 
 
 
 print("Starting analysis")
 
+# create SOE
+ops.system("FullGeneral")
+
+# create DOF number
+ops.numberer("Plain")
+
 # create constraint handler
 ops.constraints("Plain")
-# ops.constraints("Penalty", 1e12*E1,1e12*E1)
 
-# Create test
-ops.test("NormDispIncr", 1.0e-9, 50,4)
-# ops.test("NormUnbalance",1e-8,10)
-
-# create algorithm
+# create integrator
+nSteps=10
+ops.integrator("LoadControl", 1.0/nSteps)
+# ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
 ops.algorithm("Newton")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
-# create integrator
-nSteps=1
-ops.integrator("LoadControl", 1.0/nSteps)
-# ops.integrator("LoadControl", 1.0)
-
+# Create test
+ops.test("NormDispIncr", 1.0e-9, 50,1)
 
 # create analysis object
 ops.analysis("Static")
 
-# ops.analyze(1)
 
 # perform the analysis
 import matplotlib.pyplot as plt
 data=np.zeros((nSteps+1,2))
 for j in range(nSteps):
     ops.analyze(1)
-    data[j+1,0] = 1000*float(ops.nodeDisp(8,3))
+    data[j+1,0] = 1000*ops.nodeDisp(8,3)
     data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
     print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
 
 plt.plot(data[:,0], data[:,1])
+plt.plot(data[:,0], data[:,1],'or')
 plt.xlabel('Vertical Displacement')
 plt.ylabel('Vertical Load')
 plt.show()

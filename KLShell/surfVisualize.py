@@ -3,6 +3,7 @@
 # Universidad de los Andes, Chile
 
 from geomdl.visualization import VisMPL
+from geomdl.visualization import VisVTK
 from geomdl import NURBS
 from multiprocessing import Process
 
@@ -25,6 +26,11 @@ def surfVisualize(surf,i=0, sample_size=25,hold=False,save=False):
     vis_config = VisMPL.VisConfig(
         ctrlpts=True, axes=True, legend=True)
     vis_comp = VisMPL.VisSurface(vis_config)
+
+    # vis_config = VisVTK.VisConfig(
+    #     ctrlpts=True, axes=True, legend=True)
+    # vis_comp = VisVTK.VisSurface(vis_config)
+    
     surf.vis = vis_comp
 
     # show(block=True)
