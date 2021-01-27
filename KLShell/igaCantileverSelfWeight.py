@@ -111,8 +111,8 @@ surfVisualize(surf, hold=True)
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
-rho = 8.0e3  # *9.807 # kg/m^3
-t = 0.05
+rho = 2.0e2  # kg/m^3
+
 
 
 tagNDmat1 = 1
@@ -139,7 +139,7 @@ thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 # thickness = [50. * mm]
 # θ = [0 * deg2rad]
 
-gFact = [0.0, 0.0, 0.0 ]
+gFact = [0.0, 0.0, 0.0]
 
 
 
@@ -194,11 +194,9 @@ print("Loading nodes")
 # for n in [7,8]:
 #     ops.load(n,0,0,Pz)
 
-weight = [0.0, 0.0, -9.807]
+weight = [0.0, 0.0, -9.8066]
 ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
 print("Finished loading nodes")
-
-
 
 
 
@@ -214,7 +212,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=10
+nSteps=1
 ops.integrator("LoadControl", 1.0/nSteps)
 # ops.integrator("LoadControl", 1.0)
 
@@ -224,7 +222,7 @@ ops.algorithm("Newton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-9, 50,1)
+ops.test("NormDispIncr", 1.0e-4, 300,1)
 
 # create analysis object
 ops.analysis("Static")
@@ -245,42 +243,32 @@ for j in range(nSteps):
 # plt.ylabel('Vertical Load')
 # plt.show()
 
-# print("Finished analysis")
+print("Finished analysis")
 
-# controlPts = surf.ctrlpts2d[:]
-# controlPts = compatibility.flip_ctrlpts2d(controlPts)
+controlPts = surf.ctrlpts2d[:]
+controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-# fDef = 1e0
-# i = 1
-# for dim in controlPts:
-#     for point in dim:
-#         point[:3] += fDef * np.array(ops.nodeDisp(i))
-#         i += 1
+fDef = 1e0
+i = 1
+for dim in controlPts:
+    for point in dim:
+        point[:3] += fDef * np.array(ops.nodeDisp(i))
+        i += 1
 
-# controlPts = compatibility.flip_ctrlpts2d(controlPts)
+controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-# controlPts = (np.array(controlPts).reshape(
-#     surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
+controlPts = (np.array(controlPts).reshape(
+    surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
 
-# # Setting control points for surface
-# surf.set_ctrlpts(controlPts, 2, 4)
+# Setting control points for surface
+surf.set_ctrlpts(controlPts, 2, 4)
 
 
-# # Set knot vectors
-# uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
-# vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
+# Visualize surface
+surfVisualize(surf, hold=True)
 
-# surf.knotvector_u = uKnot
-# surf.knotvector_v = vKnot
+print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
+print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
 
-# noPtsX = surf.ctrlpts_size_u
-# noPtsY = surf.ctrlpts_size_v
-
-# # Visualize surface
-# surfVisualize(surf, hold=True)
-
-# print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
-# print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
-
-# print("Done")
+print("Done")
 
