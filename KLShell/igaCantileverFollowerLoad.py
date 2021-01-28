@@ -1,4 +1,6 @@
-#  IGA Scordelis Lo Roof
+#  IGA CANTILEVER PLATE. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
+
+
 import numpy as np
 import opensees as ops
 from math import *
@@ -52,84 +54,32 @@ def generateKnotVector(deg, nPts):
 
     return knotVector
 
+
+
+
+La = 10.0  	#
+Lb = 1.0  	#
 mm = 1.0 / 1000.  # m
 
-
+ops.wipe()
 ops.model('basic', '-ndm', 3, '-ndf', 3)
 
-R=25
-L=50
-phi=40
-deg2rad = pi / 180
-
-controlPts=np.zeros((4,3,3))
-
-# First zKnot
-
-x1=np.sqrt(R**2+R**2*np.tan(deg2rad*20)**2)
-
-point0=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), 0, 1]
-point1=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), 0, 1]
-point2=[0,R,0,1]
-point3=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), 0, 1]
-point4=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), 0, 1]
-
-
-# Second zKnot
-z=L/2
-
-# point3=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
-# point4=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
-# point5=[0,R,z,1]
-
-point5=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), z, 1]
-point6=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), z, 1]
-point7=[0,R,z,1]
-point8=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), z, 1]
-point9=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), z, 1]
-
-# Third zKnot
-z=L
-
-# point6=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)),z,1]
-# point7=[x1*np.cos(deg2rad*70), x1*np.sin(deg2rad*70), z, 1]
-# point8=[0,R,z,1]
-
-point10=[R*np.cos(deg2rad*(90-phi)), R*np.sin(deg2rad*(90-phi)), z, 1]
-point11=[x1*np.cos(deg2rad*(90-phi/2)), x1*np.sin(deg2rad*(90-phi/2)), z, 1]
-point12=[0,R,z,1]
-point13=[x1*np.cos(deg2rad*(90+phi/2)), x1*np.sin(deg2rad*(90+phi/2)), z, 1]
-point14=[R*np.cos(deg2rad*(90+phi)), R*np.sin(deg2rad*(90+phi)), z, 1]
-
-# Weights
-fac=np.cos(deg2rad*(phi/2))
-point1[3]=fac
-point2[3]=fac
-point3[3]=fac
-
-point6[3]=fac
-point7[3]=fac
-point8[3]=fac
-
-point11[3]=fac
-point12[3]=fac
-point13[3]=fac
-
-controlPts=[point0,point1,point2,point3,point4,point5,point6,point7,point8,point9,point10,point11,point12,point13,point14]
-
-for point in controlPts:
-    for i in range(3):
-        point[i]*=point[3]
-
-# Fix points 2, 7, 12
-for n in [2,7,12]:
-    controlPts[n][1]/=controlPts[n][3]
+# These are given in v,u
+controlPts = np.array([ 
+    [0     , 0 , 0 , 1] ,
+    [La*1/3 , 0 , 0 , 1] ,
+    [La*2/3   , 0  , 0 , 1] ,
+    [La       , 0  , 0 , 1],  
+    [0     , Lb , 0 , 1] ,
+    [La*1/3 , Lb , 0 , 1] ,
+    [La*2/3   , Lb  , 0 , 1] ,
+    [La       , Lb  , 0 , 1] 
+])
 
 
 patchTag = 1
-P = 2
-Q = 2
-
+P = 1
+Q = 3
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -139,7 +89,7 @@ surf.degree_u = P
 surf.degree_v = Q
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts, 3, 5)
+surf.set_ctrlpts(controlPts.tolist(), 2, 4)
 
 # Set knot vectors
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -148,36 +98,21 @@ vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
-# Refine surface
-operations.refine_knotvector(surf,[1,0])
-# Set surface degrees
-surf.degree_u = P+1
-surf.degree_v = Q+1
-# Set knot vectors refined
-uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
-vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
-surf.knotvector_u = uKnot
-surf.knotvector_v = vKnot
-
-
 
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
 # Visualize surface
 surfVisualize(surf, hold=True)
-# 
-
-
 
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 4.32e8  # Young's modulus N/m^2
+E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
-rho = 8.0e3  # *9.807 # kg/m^3
-t = 0.05
+rho = 2.0e2  # kg/m^3
+
 
 
 tagNDmat1 = 1
@@ -200,11 +135,13 @@ matTags = [3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-gFact = [0.0, 0.0, 0.0 * 9.807]
+# matTags = [3]
+# thickness = [50. * mm]
+# θ = [0 * deg2rad]
 
-matTags = [3]
-thickness = [50.0 * mm]
-θ = [0 * deg2rad]
+gFact = [0.0, 0.0, 0.0]
+
+
 
 
 Nlayers = len(θ)
@@ -215,30 +152,31 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 print("controlPts.tolist(): ", controlPts.tolist())
 
 
-ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        "-nonLinearGeometry", 0,
+        # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
-        "-uKnot", *surf.knotvector_u, "-vKnot", *surf.knotvector_v, "-controlPts", *controlPts.flatten())
+        "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+
+# exit()
 
 
+for n in [1,2,3,4,5,6,7,8]:
+    if n in [1,2,3,4]:
+        ops.fix(n,1,1,1)
+    else:
+        ops.fix(n,1,1,0)
 
-
+# # #Fijar nodos 1, 2, 3, 4
+# for n in [1,2,3,4]:
+#     ops.fix(n,1,1,1)
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
-
-nPoints=surf.ctrlpts_size_v*surf.ctrlpts_size_u
-fixedNodes=np.concatenate((np.arange(0,nPoints,surf.ctrlpts_size_v),np.arange(0,nPoints,surf.ctrlpts_size_v)+surf.ctrlpts_size_u-1))
-print("fixedNodes: ", fixedNodes)
-
-for n in fixedNodes:
-    print("n+1: ", n+1)
-    ops.fix(n+1,1,1,1)
 
 # ------------------------------
 # Start of analysis generation
@@ -251,46 +189,55 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-weight = [0.0, 0.0, -9.8066]
-ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
+Pz=1.0
+followerLoads = [0.0, 0.0, -Pz]
+ops.eleLoad("-type", "-IGAFollowerLoad",1,0.5,1.0, *followerLoads, 1)
 print("Finished loading nodes")
-
-# create SOE
-ops.system("FullGeneral")
-# ops.system("BandSPD")
-
-# create DOF number
-ops.numberer("RCM")
 
 
 
 print("Starting analysis")
 
+# create SOE
+ops.system("FullGeneral")
+
+# create DOF number
+ops.numberer("Plain")
+
 # create constraint handler
 ops.constraints("Plain")
-# ops.constraints("Penalty", 1e12*E1,1e12*E1)
 
-# Create test
-ops.test("NormDispIncr", 1.0e-9, 50, 1)
-# ops.test("NormUnbalance",1e-8,10)
+# create integrator
+nSteps=1
+ops.integrator("LoadControl", 1.0/nSteps)
+# ops.integrator("LoadControl", 1.0)
 
-# create algorithm
-
-ops.algorithm("Linear")
-# ops.algorithm("Newton")
+# ops.algorithm("Linear")
+ops.algorithm("Newton")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
-# create integrator
-# nSteps=10
-# ops.integrator("LoadControl", 1.0/nSteps)
-ops.integrator("LoadControl", 1.0)
-
+# Create test
+ops.test("NormDispIncr", 1.0e-4, 300,1)
 
 # create analysis object
 ops.analysis("Static")
 
-ops.analyze(1)
+
+# perform the analysis
+import matplotlib.pyplot as plt
+data=np.zeros((nSteps+1,2))
+for j in range(nSteps):
+    ops.analyze(1)
+    # data[j+1,0] = 1000*ops.nodeDisp(8,3)
+    # data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
+    # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
+
+# plt.plot(data[:,0], data[:,1])
+# plt.plot(data[:,0], data[:,1],'or')
+# plt.xlabel('Vertical Displacement')
+# plt.ylabel('Vertical Load')
+# plt.show()
 
 print("Finished analysis")
 
@@ -310,19 +257,8 @@ controlPts = (np.array(controlPts).reshape(
     surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
 
 # Setting control points for surface
-print("controlPts: ", controlPts)
 surf.set_ctrlpts(controlPts, 2, 4)
 
-
-# Set knot vectors
-uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
-vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
-
-surf.knotvector_u = uKnot
-surf.knotvector_v = vKnot
-
-noPtsX = surf.ctrlpts_size_u
-noPtsY = surf.ctrlpts_size_v
 
 # Visualize surface
 surfVisualize(surf, hold=True)
