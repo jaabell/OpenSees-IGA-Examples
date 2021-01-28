@@ -154,7 +154,7 @@ print("controlPts.tolist(): ", controlPts.tolist())
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
+        "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
@@ -215,8 +215,8 @@ nSteps=10
 ops.integrator("LoadControl", 1.0/nSteps)
 # ops.integrator("LoadControl", 1.0)
 
-# ops.algorithm("Linear")
-ops.algorithm("Newton")
+ops.algorithm("Linear")
+# ops.algorithm("Newton")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
@@ -234,7 +234,7 @@ for j in range(nSteps):
     ops.analyze(1)
     data[j+1,0] = 1000*ops.nodeDisp(8,3)
     data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
-    print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
+    # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
 
 plt.plot(data[:,0], data[:,1])
 plt.plot(data[:,0], data[:,1],'or')

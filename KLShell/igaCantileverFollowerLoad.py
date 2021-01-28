@@ -96,6 +96,17 @@ vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
+# Refine surface
+operations.refine_knotvector(surf, [2, 1])
+# Set surface degrees
+surf.degree_u = 3
+surf.degree_v = 5
+# Set knot vectors refined
+uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
+vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
+surf.knotvector_u = uKnot
+surf.knotvector_v = vKnot
+
 
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
@@ -147,27 +158,35 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 print("controlPts.tolist(): ", controlPts.tolist())
 
 
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
+ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
-        "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+        "-uKnot", *surf.knotvector_u, "-vKnot", *surf.knotvector_v, "-controlPts", *controlPts.flatten())
 
 # exit()
+nPoints = surf.ctrlpts_size_u * surf.ctrlpts_size_v
 
-
-for n in [1, 2, 3, 4, 5, 6, 7, 8]:
-    if n in [1, 2, 3, 4]:
+fixedNodes = np.concatenate((np.arange(1, nPoints, surf.ctrlpts_size_v), np.arange(2, nPoints, surf.ctrlpts_size_v)))
+for n in ops.getNodeTags():
+    if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
     else:
-        ops.fix(n, 1, 1, 0)
+        ops.fix(n, 0, 1, 0)
 
-# # #Fijar nodos 1, 2, 3, 4
-# for n in [1,2,3,4]:
-#     ops.fix(n,1,1,1)
+equalDOFnodes_master = np.arange(3, surf.ctrlpts_size_v + 1, 1)
+for masterNode in equalDOFnodes_master:
+    retainedNodes = np.arange(masterNode + surf.ctrlpts_size_v, nPoints + 1, surf.ctrlpts_size_v)
+    for retainedNode in retainedNodes:
+        ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
+
+
+
+
+
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
@@ -184,10 +203,13 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-Pz = 1e3
-followerLoads = [0.0, 0.0, -Pz]
-ops.eleLoad("-ele", 1 , "-type", "-IGAFollowerLoad", 0.5, 1.0, *followerLoads)
+Pz = 5e4
+followerLoads = [0.0, 0.0, Pz]
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoads)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.5, 1.0, *followerLoads)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoads)
 print("Finished loading nodes")
+
 
 
 print("Starting analysis")
@@ -199,7 +221,8 @@ ops.system("FullGeneral")
 ops.numberer("Plain")
 
 # create constraint handler
-ops.constraints("Plain")
+# ops.constraints("Plain")
+ops.constraints("Transformation")
 
 # create integrator
 nSteps = 1
@@ -212,7 +235,7 @@ ops.algorithm("Newton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-4, 300, 1)
+ops.test("NormDispIncr", 1.0e-9, 300, 1)
 
 # create analysis object
 ops.analysis("Static")
@@ -239,28 +262,27 @@ for j in range(nSteps):
 print("Finished analysis")
 
 controlPts = surf.ctrlpts2d[:]
-controlPts = compatibility.flip_ctrlpts2d(controlPts)
+# controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-fDef = 1e0
+fDef = 1e2
 i = 1
 for dim in controlPts:
     for point in dim:
         point[:3] += fDef * np.array(ops.nodeDisp(i))
         i += 1
 
-controlPts = compatibility.flip_ctrlpts2d(controlPts)
-
+# controlPts = compatibility.flip_ctrlpts2d(controlPts)
 controlPts = (np.array(controlPts).reshape(
     surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts, 2, 4)
+surf.set_ctrlpts(controlPts, surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
 
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-print("ops.nodeDisp(7,2): ", 1000 * np.array(ops.nodeDisp(7)), "mm")
-print("ops.nodeDisp(8,2): ", 1000 * np.array(ops.nodeDisp(8)), "mm")
+print("Left Disp ", 1000 * np.array(ops.nodeDisp(surf.ctrlpts_size_v)), "mm")
+print("Right disp: ", 1000 * np.array(ops.nodeDisp(surf.ctrlpts_size_v * surf.ctrlpts_size_u)), "mm")
 
 print("Done")
