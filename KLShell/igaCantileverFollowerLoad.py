@@ -55,8 +55,6 @@ def generateKnotVector(deg, nPts):
     return knotVector
 
 
-
-
 La = 10.0  	#
 Lb = 1.0  	#
 mm = 1.0 / 1000.  # m
@@ -65,15 +63,15 @@ ops.wipe()
 ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 # These are given in v,u
-controlPts = np.array([ 
-    [0     , 0 , 0 , 1] ,
-    [La*1/3 , 0 , 0 , 1] ,
-    [La*2/3   , 0  , 0 , 1] ,
-    [La       , 0  , 0 , 1],  
-    [0     , Lb , 0 , 1] ,
-    [La*1/3 , Lb , 0 , 1] ,
-    [La*2/3   , Lb  , 0 , 1] ,
-    [La       , Lb  , 0 , 1] 
+controlPts = np.array([
+    [0, 0, 0, 1],
+    [La * 1 / 3, 0, 0, 1],
+    [La * 2 / 3, 0, 0, 1],
+    [La, 0, 0, 1],
+    [0, Lb, 0, 1],
+    [La * 1 / 3, Lb, 0, 1],
+    [La * 2 / 3, Lb, 0, 1],
+    [La, Lb, 0, 1]
 ])
 
 
@@ -114,7 +112,6 @@ nu = 0.0  # Poisson's ratio
 rho = 2.0e2  # kg/m^3
 
 
-
 tagNDmat1 = 1
 ops.nDMaterial("ElasticIsotropic", tagNDmat1, E1, nu, rho)
 
@@ -142,8 +139,6 @@ thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 gFact = [0.0, 0.0, 0.0]
 
 
-
-
 Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
@@ -164,11 +159,11 @@ ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
 # exit()
 
 
-for n in [1,2,3,4,5,6,7,8]:
-    if n in [1,2,3,4]:
-        ops.fix(n,1,1,1)
+for n in [1, 2, 3, 4, 5, 6, 7, 8]:
+    if n in [1, 2, 3, 4]:
+        ops.fix(n, 1, 1, 1)
     else:
-        ops.fix(n,1,1,0)
+        ops.fix(n, 1, 1, 0)
 
 # # #Fijar nodos 1, 2, 3, 4
 # for n in [1,2,3,4]:
@@ -189,11 +184,10 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-Pz=1.0
+Pz = 1e3
 followerLoads = [0.0, 0.0, -Pz]
-ops.eleLoad("-type", "-IGAFollowerLoad",1,0.5,1.0, *followerLoads, 1)
+ops.eleLoad("-type", "-IGAFollowerLoad", 1, 0.5, 1.0, *followerLoads, 1)
 print("Finished loading nodes")
-
 
 
 print("Starting analysis")
@@ -208,8 +202,8 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=1
-ops.integrator("LoadControl", 1.0/nSteps)
+nSteps = 1
+ops.integrator("LoadControl", 1.0 / nSteps)
 # ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
@@ -218,7 +212,7 @@ ops.algorithm("Newton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-4, 300,1)
+ops.test("NormDispIncr", 1.0e-4, 300, 1)
 
 # create analysis object
 ops.analysis("Static")
@@ -226,7 +220,7 @@ ops.analysis("Static")
 
 # perform the analysis
 import matplotlib.pyplot as plt
-data=np.zeros((nSteps+1,2))
+data = np.zeros((nSteps + 1, 2))
 for j in range(nSteps):
     ops.analyze(1)
     # data[j+1,0] = 1000*ops.nodeDisp(8,3)
@@ -263,8 +257,7 @@ surf.set_ctrlpts(controlPts, 2, 4)
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
-print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+print("ops.nodeDisp(7,2): ", 1000 * np.array(ops.nodeDisp(7)), "mm")
+print("ops.nodeDisp(8,2): ", 1000 * np.array(ops.nodeDisp(8)), "mm")
 
 print("Done")
-
