@@ -186,7 +186,7 @@ ops.pattern("Plain", 1, 1)
 print("Loading nodes")
 Pz = 1e3
 followerLoads = [0.0, 0.0, -Pz]
-ops.eleLoad("-type", "-IGAFollowerLoad", 1, 0.5, 1.0, *followerLoads, 1)
+ops.eleLoad("-ele", 1 , "-type", "-IGAFollowerLoad", 0.5, 1.0, *followerLoads)
 print("Finished loading nodes")
 
 
@@ -226,6 +226,9 @@ for j in range(nSteps):
     # data[j+1,0] = 1000*ops.nodeDisp(8,3)
     # data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
     # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
+
+
+# exit(0)
 
 # plt.plot(data[:,0], data[:,1])
 # plt.plot(data[:,0], data[:,1],'or')
