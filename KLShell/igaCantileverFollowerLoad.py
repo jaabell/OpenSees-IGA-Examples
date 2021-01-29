@@ -89,6 +89,7 @@ surf.degree_v = Q
 # Setting control points for surface
 surf.set_ctrlpts(controlPts.tolist(), 2, 4)
 
+
 # Set knot vectors
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
 vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
@@ -97,9 +98,9 @@ surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 # Refine surface
-operations.refine_knotvector(surf, [2, 1])
+operations.refine_knotvector(surf, [1, 2])
 # Set surface degrees
-surf.degree_u = 3
+surf.degree_u = 2
 surf.degree_v = 5
 # Set knot vectors refined
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -107,13 +108,13 @@ vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
-
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
+operations.insert_knot(surf,[None,0.95],[0,1])
+
 # Visualize surface
 surfVisualize(surf, hold=True)
-
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
@@ -139,21 +140,22 @@ ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 
 deg2rad = pi / 180
 
-matTags = [3, 4, 3, 4, 3]
-thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
-θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
+# matTags = [3, 4, 3, 4, 3]
+# thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
+# θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-# matTags = [3]
-# thickness = [50. * mm]
-# θ = [0 * deg2rad]
+matTags = [3]
+thickness = [50. * mm]
+θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0]
 
 
 Nlayers = len(θ)
 
-controlPts = surf.ctrlpts2d[:]
-controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
+controlPts = surf.ctrlpts2d[:] # Given in v,u
+controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping tp u,v
+
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
@@ -170,20 +172,19 @@ ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, su
 # exit()
 nPoints = surf.ctrlpts_size_u * surf.ctrlpts_size_v
 
-fixedNodes = np.concatenate((np.arange(1, nPoints, surf.ctrlpts_size_v), np.arange(2, nPoints, surf.ctrlpts_size_v)))
+fixedNodes = np.concatenate((np.arange(1, surf.ctrlpts_size_u+1, 1), np.arange(surf.ctrlpts_size_u+1, surf.ctrlpts_size_v, 1)))
 for n in ops.getNodeTags():
     if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
     else:
         ops.fix(n, 0, 1, 0)
 
-equalDOFnodes_master = np.arange(3, surf.ctrlpts_size_v + 1, 1)
+equalDOFnodes_master = np.arange(2*surf.ctrlpts_size_u+1, nPoints, surf.ctrlpts_size_u)
 for masterNode in equalDOFnodes_master:
-    retainedNodes = np.arange(masterNode + surf.ctrlpts_size_v, nPoints + 1, surf.ctrlpts_size_v)
+    retainedNodes = np.arange(masterNode+1, masterNode+surf.ctrlpts_size_u, 1)
     for retainedNode in retainedNodes:
+        print("masterNode,retainedNode: ", masterNode,retainedNode)
         ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
-
-
 
 
 
@@ -191,6 +192,7 @@ for masterNode in equalDOFnodes_master:
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
+
 
 # ------------------------------
 # Start of analysis generation
@@ -203,12 +205,19 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-Pz = 5e4
-followerLoads = [0.0, 0.0, Pz]
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoads)
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.5, 1.0, *followerLoads)
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoads)
+Pz = (2.7489e6)/4.0
+followerLoadsPos = [0.0, 0.0, Pz/2] 
+followerLoadsNeg = [0.0, 0.0, -Pz/2]
+
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoadsPos)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
+
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
 print("Finished loading nodes")
+
+# ops.load(nPoints-2,0,0,Pz/2)
+# ops.load(nPoints,0,0,Pz/2)
 
 
 
@@ -221,21 +230,23 @@ ops.system("FullGeneral")
 ops.numberer("Plain")
 
 # create constraint handler
-# ops.constraints("Plain")
-ops.constraints("Transformation")
+ops.constraints("Plain")
+# ops.constraints("Transformation")
 
 # create integrator
-nSteps = 1
+nSteps = 50
 ops.integrator("LoadControl", 1.0 / nSteps)
 # ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
-ops.algorithm("Newton")
+# ops.algorithm("Newton")
+# ops.algorithm("SecantNewton")
+ops.algorithm("LineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-9, 300, 1)
+ops.test("NormDispIncr", 1.0e-5, 300, 1)
 
 # create analysis object
 ops.analysis("Static")
@@ -245,44 +256,37 @@ ops.analysis("Static")
 import matplotlib.pyplot as plt
 data = np.zeros((nSteps + 1, 2))
 for j in range(nSteps):
-    ops.analyze(1)
-    # data[j+1,0] = 1000*ops.nodeDisp(8,3)
-    # data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
-    # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
+    result=ops.analyze(1)
+    if result!=0:
+        break
+        exit(-1)
+    else:
+        # Adding deformation to controlPts
+        controlPts = surf.ctrlpts2d[:]
+        controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping tp u,v
+
+        fDef = 1e0
+        i = 1
+        for dim in controlPts:
+            for point in dim:
+                point[:3] += fDef * np.array(ops.nodeDisp(i))
+                i += 1
+
+        # Setting control points for surface
+        controlPts = compatibility.flip_ctrlpts2d(controlPts)
+        controlPts = (np.array(controlPts).reshape(
+            nPoints, 4))
+        surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
+
+        # Visualize surface
+        surfVisualize(surf, hold=True)
 
 
-# exit(0)
+print("Done")
 
-# plt.plot(data[:,0], data[:,1])
-# plt.plot(data[:,0], data[:,1],'or')
-# plt.xlabel('Vertical Displacement')
-# plt.ylabel('Vertical Load')
-# plt.show()
+
+
 
 print("Finished analysis")
 
-controlPts = surf.ctrlpts2d[:]
-# controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-fDef = 1e2
-i = 1
-for dim in controlPts:
-    for point in dim:
-        point[:3] += fDef * np.array(ops.nodeDisp(i))
-        i += 1
-
-# controlPts = compatibility.flip_ctrlpts2d(controlPts)
-controlPts = (np.array(controlPts).reshape(
-    surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
-
-# Setting control points for surface
-surf.set_ctrlpts(controlPts, surf.ctrlpts_size_u, surf.ctrlpts_size_v)
-
-
-# Visualize surface
-surfVisualize(surf, hold=True)
-
-print("Left Disp ", 1000 * np.array(ops.nodeDisp(surf.ctrlpts_size_v)), "mm")
-print("Right disp: ", 1000 * np.array(ops.nodeDisp(surf.ctrlpts_size_v * surf.ctrlpts_size_u)), "mm")
-
-print("Done")

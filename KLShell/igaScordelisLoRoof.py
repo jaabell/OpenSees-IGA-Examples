@@ -149,7 +149,7 @@ surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 # Refine surface
-operations.refine_knotvector(surf,[1,0])
+operations.refine_knotvector(surf,[2,1])
 # Set surface degrees
 surf.degree_u = P+1
 surf.degree_v = Q+1
@@ -176,7 +176,7 @@ surfVisualize(surf, hold=True)
 E1 = 4.32e8  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
-rho = 8.0e3  # *9.807 # kg/m^3
+rho = 8.0e1  # *9.807 # kg/m^3
 t = 0.05
 
 
@@ -203,7 +203,7 @@ thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 gFact = [0.0, 0.0, 0.0 * 9.807]
 
 matTags = [3]
-thickness = [50.0 * mm]
+thickness = [250.0 * mm]
 θ = [0 * deg2rad]
 
 
@@ -211,8 +211,6 @@ Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
-
-print("controlPts.tolist(): ", controlPts.tolist())
 
 
 ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
@@ -237,7 +235,7 @@ fixedNodes=np.concatenate((np.arange(0,nPoints,surf.ctrlpts_size_v),np.arange(0,
 print("fixedNodes: ", fixedNodes)
 
 for n in fixedNodes:
-    print("n+1: ", n+1)
+    n=int(n)
     ops.fix(n+1,1,1,1)
 
 # ------------------------------
@@ -251,7 +249,7 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-weight = [0.0, 0.0, -9.8066]
+weight = [0.0, -9.8066, 0.0]
 ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
 print("Finished loading nodes")
 
@@ -297,7 +295,7 @@ print("Finished analysis")
 controlPts = surf.ctrlpts2d[:]
 controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-fDef = 1e0
+fDef = 1e1
 i = 1
 for dim in controlPts:
     for point in dim:
@@ -311,7 +309,7 @@ controlPts = (np.array(controlPts).reshape(
 
 # Setting control points for surface
 print("controlPts: ", controlPts)
-surf.set_ctrlpts(controlPts, 2, 4)
+surf.set_ctrlpts(controlPts, surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
 
 # Set knot vectors
@@ -327,8 +325,8 @@ noPtsY = surf.ctrlpts_size_v
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
-print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+# print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
+print("ops.nodeDisp(5): ", 1000*np.array(ops.nodeDisp(5)),"mm")
 
 print("Done")
 
