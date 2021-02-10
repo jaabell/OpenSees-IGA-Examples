@@ -98,9 +98,9 @@ surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 # Refine surface
-operations.refine_knotvector(surf, [1, 2])
+operations.refine_knotvector(surf, [0, 2])
 # Set surface degrees
-surf.degree_u = 2
+surf.degree_u = 1
 surf.degree_v = 5
 # Set knot vectors refined
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -171,13 +171,17 @@ ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, su
 
 # exit()
 nPoints = surf.ctrlpts_size_u * surf.ctrlpts_size_v
+print("surf.ctrlpts_size_u: ", surf.ctrlpts_size_u)
+print("surf.ctrlpts_size_v: ", surf.ctrlpts_size_v)
 
-fixedNodes = np.concatenate((np.arange(1, surf.ctrlpts_size_u+1, 1), np.arange(surf.ctrlpts_size_u+1, surf.ctrlpts_size_v, 1)))
+
+fixedNodes = np.concatenate((np.arange(1, surf.ctrlpts_size_u+1, 1), np.arange(surf.ctrlpts_size_u+1, 2*surf.ctrlpts_size_u+1, 1)))
 for n in ops.getNodeTags():
     if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
     else:
         ops.fix(n, 0, 1, 0)
+
 
 equalDOFnodes_master = np.arange(2*surf.ctrlpts_size_u+1, nPoints, surf.ctrlpts_size_u)
 for masterNode in equalDOFnodes_master:
@@ -206,18 +210,20 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 Pz = (2.7489e6)/4.0
+Pz = 1e5
 followerLoadsPos = [0.0, 0.0, Pz/2] 
 followerLoadsNeg = [0.0, 0.0, -Pz/2]
 
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoadsPos)
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoadsPos)
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
 
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg) 
 ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
 print("Finished loading nodes")
 
-# ops.load(nPoints-2,0,0,Pz/2)
-# ops.load(nPoints,0,0,Pz/2)
+
+# ops.load(25,0,0,Pz/2)
+# ops.load(26,0,0,Pz/2)
 
 
 
@@ -234,14 +240,14 @@ ops.constraints("Plain")
 # ops.constraints("Transformation")
 
 # create integrator
-nSteps = 50
+nSteps = 10
 ops.integrator("LoadControl", 1.0 / nSteps)
 # ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
-# ops.algorithm("Newton")
+ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-ops.algorithm("LineSearch")
+# ops.algorithm("LineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
@@ -280,6 +286,7 @@ for j in range(nSteps):
 
         # Visualize surface
         surfVisualize(surf, hold=True)
+        print("\nNext load step\n")
 
 
 print("Done")
