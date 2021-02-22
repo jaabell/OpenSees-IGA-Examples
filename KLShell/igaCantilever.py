@@ -142,8 +142,6 @@ thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 gFact = [0.0, 0.0, 0.0 * 9.807]
 
 
-
-
 Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
@@ -190,9 +188,9 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 # Cargar nodos 7,8
-Pz=0.5e2
+Pz=1e2
 for n in [7,8]:
-    ops.load(n,0,0,Pz)
+    ops.load(n,0,0,Pz/2.0)
 print("Finished loading nodes")
 
 
@@ -211,7 +209,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=10
+nSteps=1
 ops.integrator("LoadControl", 1.0/nSteps)
 # ops.integrator("LoadControl", 1.0)
 
@@ -278,6 +276,14 @@ surfVisualize(surf, hold=True)
 
 print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
 print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+
+I=(Lb*(sum(thickness)**3))/12.0
+elasticSolution=(Pz*(La**3))/(3*E1*I)
+
+result=1000*np.array(ops.nodeDisp(7,3))
+
+print("result: ", result)
+print("elasticSolution: ", 1000*elasticSolution)
 
 print("Done")
 

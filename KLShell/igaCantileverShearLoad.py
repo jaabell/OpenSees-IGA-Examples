@@ -55,8 +55,8 @@ def generateKnotVector(deg, nPts):
     return knotVector
 
 
-La = 8.0  	#
-Lb = 0.5  	#
+La = 10.0  	#
+Lb = 1.0  	#
 mm = 1.0 / 1000.  # m
 
 ops.wipe()
@@ -91,8 +91,8 @@ surf.set_ctrlpts(controlPts.tolist(), 2, 4)
 
 
 # Set knot vectors
-uKnot = knotvector.generate(surf.degree_u,surf.ctrlpts_size_u)
-vKnot = knotvector.generate(surf.degree_v,surf.ctrlpts_size_v)
+uKnot = knotvector.generate(surf.degree_u, surf.ctrlpts_size_u)
+vKnot = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 
 # uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
 # vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
@@ -100,23 +100,33 @@ vKnot = knotvector.generate(surf.degree_v,surf.ctrlpts_size_v)
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
+print("surf.knotvector_v: ", surf.knotvector_v)
+
 # Refine surface
-operations.refine_knotvector(surf, [0, 1])
+operations.refine_knotvector(surf, [0, 0])
+
+print("surf.knotvector_v: ", surf.knotvector_v)
 
 # Set surface degrees
 surf.degree_u = 1
-surf.degree_v = 5
+surf.degree_v = 3
 
 # Set knot vectors refined
 # uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
 # vKnot = generateKnotVector(surf.degree_v, surf.ctrlpts_size_v)
 
-uKnot=knotvector.generate(surf.degree_u,surf.ctrlpts_size_u)
-vKnot=knotvector.generate(surf.degree_v,surf.ctrlpts_size_v)
+uKnot = knotvector.generate(surf.degree_u, surf.ctrlpts_size_u)
+vKnot = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
+
+
 
 
 surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
+
+print("surf.knotvector_v: ", surf.knotvector_v)
+# exit()
+# The problem may be the refinement
 
 
 
@@ -126,8 +136,8 @@ noPtsY = surf.ctrlpts_size_v
 # operations.insert_knot(surf,[None,0.95],[0,1])
 
 
-surf.knotvector_u=knotvector.generate(surf.degree_u,surf.ctrlpts_size_u)
-surf.knotvector_v=knotvector.generate(surf.degree_v,surf.ctrlpts_size_v)
+surf.knotvector_u = knotvector.generate(surf.degree_u, surf.ctrlpts_size_u)
+surf.knotvector_v = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 
 
 
@@ -136,7 +146,7 @@ surfVisualize(surf, hold=True)
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 2.1e11  # Young's modulus N/m^2
+E1 = 1.2e6  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
 rho = 2.0e2  # kg/m^3
@@ -163,7 +173,7 @@ deg2rad = pi / 180
 # θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
 matTags = [3]
-thickness = [500. * mm]
+thickness = [100. * mm]
 θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0]
@@ -171,8 +181,8 @@ gFact = [0.0, 0.0, 0.0]
 
 Nlayers = len(θ)
 
-controlPts = surf.ctrlpts2d[:] # Given in v,u
-controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping to u,v
+controlPts = surf.ctrlpts2d[:]  # Given in v,u
+controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))  # Flipping to u,v
 
 
 print("controlPts.tolist(): ", controlPts.tolist())
@@ -193,7 +203,7 @@ print("surf.ctrlpts_size_u: ", surf.ctrlpts_size_u)
 print("surf.ctrlpts_size_v: ", surf.ctrlpts_size_v)
 
 
-fixedNodes = np.concatenate((np.arange(1, surf.ctrlpts_size_u+1, 1), np.arange(surf.ctrlpts_size_u+1, 2*surf.ctrlpts_size_u+1, 1)))
+fixedNodes = np.concatenate((np.arange(1, surf.ctrlpts_size_u + 1, 1), np.arange(surf.ctrlpts_size_u + 1, 2 * surf.ctrlpts_size_u + 1, 1)))
 for n in ops.getNodeTags():
     if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
@@ -201,14 +211,12 @@ for n in ops.getNodeTags():
         ops.fix(n, 0, 1, 0)
 
 
-equalDOFnodes_master = np.arange(2*surf.ctrlpts_size_u+1, nPoints, surf.ctrlpts_size_u)
+equalDOFnodes_master = np.arange(2 * surf.ctrlpts_size_u + 1, nPoints, surf.ctrlpts_size_u)
 for masterNode in equalDOFnodes_master:
-    retainedNodes = np.arange(masterNode+1, masterNode+surf.ctrlpts_size_u, 1)
+    retainedNodes = np.arange(masterNode + 1, masterNode + surf.ctrlpts_size_u, 1)
     for retainedNode in retainedNodes:
-        print("masterNode,retainedNode: ", masterNode,retainedNode)
+        print("masterNode,retainedNode: ", masterNode, retainedNode)
         ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
-
-
 
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
@@ -227,31 +235,12 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-I      = Lb*(sum(thickness)**3)/12.0;
-moment = (2*np.pi*E1*I)/La; # final bending moment to make the strip a circle
-# Pz = moment/I/4
 
-deltaL=(1-0.95)*La
-Pz=moment/deltaL/4
-
-Pz=5e7
-
-
-followerLoadsPos = [0.0, 0.0, Pz/2] 
-followerLoadsNeg = [0.0, 0.0, -Pz/2]
-
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoadsPos)
-ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
-
-# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg) 
-# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
+Pz = 4.0
+ops.load(nPoints - 1, 0, 0, Pz / 2.0)
+ops.load(nPoints, 0, 0, Pz / 2.0)
 
 print("Finished loading nodes")
-
-Pz=6e6
-# ops.load(nPoints-1,-Pz*3,0,Pz/2)
-# ops.load(nPoints,-Pz*3,0,Pz/2)
-
 
 
 print("Starting analysis")
@@ -264,12 +253,10 @@ ops.numberer("Plain")
 
 # create constraint handler
 ops.constraints("Plain")
-# ops.constraints("Transformation")
 
 # create integrator
-nSteps = 60
+nSteps = 20
 ops.integrator("LoadControl", 1.0 / nSteps)
-# ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
 ops.algorithm("Newton")
@@ -279,7 +266,7 @@ ops.algorithm("Newton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-5, 300, 1)
+ops.test("NormDispIncr", 1.0e-8, 500, 1)
 
 # create analysis object
 ops.analysis("Static")
@@ -287,16 +274,17 @@ ops.analysis("Static")
 
 # perform the analysis
 import matplotlib.pyplot as plt
-data = np.zeros((nSteps + 1, 2))
+data = np.zeros((nSteps + 1, 3))
+
 for j in range(nSteps):
-    result=ops.analyze(1)
-    if result!=0:
+    result = ops.analyze(1)
+    if result != 0:
         break
         exit(-1)
     else:
         # Adding deformation to controlPts
         controlPts = surf.ctrlpts2d[:]
-        controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping tp u,v
+        controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))  # Flipping tp u,v
 
         fDef = 1e0
         i = 1
@@ -313,17 +301,26 @@ for j in range(nSteps):
 
         # Visualize surface
         surfVisualize(surf, hold=True)
-        e3=operations.normal(surf, [0.0,1.0], normalize=True)[1]
-        print("e3: ", e3)
+
+        data[j+1, 0] = abs(ops.nodeDisp(nPoints, 3))
+        data[j+1, 1] = abs(ops.nodeDisp(nPoints, 1))
+        data[j+1, 2] = abs(ops.getLoadFactor(1) * Pz)
 
         print("\nNext load step\n")
 
+plt.plot(data[:, 0], data[:, 2],'-or')
+plt.plot(data[:, 1], data[:, 2],'-or')
+plt.xlabel('Horizontal Displacement')
+plt.ylabel('Horizontal Load')
+plt.show()
 
 print("Done")
 
+I=(Lb*(sum(thickness)**3))/12.0
+elasticSolution=(Pz*(La**3))/(3*E1*I)
 
+print("elasticSolution: ", elasticSolution)
+print("data[nSteps,0]: ", data[nSteps,0])
 
 
 print("Finished analysis")
-
-

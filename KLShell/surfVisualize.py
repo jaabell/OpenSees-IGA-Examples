@@ -47,7 +47,6 @@ def surfVisualize(surf,i=0, sample_size=25,hold=False,save=False):
         else:
             surf.render(colormap=cm.coolwarm)
 
-
     # show(block=False)
 
 
