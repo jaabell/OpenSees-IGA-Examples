@@ -110,8 +110,8 @@ surfVisualize(surf, hold=True)
 # $poisson_probeta
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
-nu = 0.0  # Poisson's ratio
-rho = 2.0e2  # kg/m^3
+nu = 0.4  # Poisson's ratio
+rho = 4.0e2  # kg/m^3
 
 
 
@@ -212,7 +212,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=1
+nSteps=10
 ops.integrator("LoadControl", 1.0/nSteps)
 # ops.integrator("LoadControl", 1.0)
 
@@ -222,7 +222,7 @@ ops.algorithm("Newton")
 # ops.algorithm("KrylovNewton")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-4, 300,1)
+ops.test("NormDispIncr", 1.0e-8, 300,1)
 
 # create analysis object
 ops.analysis("Static")
@@ -269,6 +269,11 @@ surfVisualize(surf, hold=True)
 
 print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
 print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+
+I=(Lb*(sum(thickness)**3))/12.0
+W=rho*weight[2]*sum(thickness)
+elasticSolution = abs(W*La**4/(8*E1*I))
+print("elasticSolution: ", 1000*elasticSolution, "mm")
 
 print("Done")
 

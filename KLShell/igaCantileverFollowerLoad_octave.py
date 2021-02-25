@@ -75,6 +75,7 @@ La = 8.0    #
 Lb = 0.5    #
 mm = 1.0 / 1000.  # m
 
+
 ops.wipe()
 ops.model('basic', '-ndm', 3, '-ndf', 3)
 
@@ -153,6 +154,8 @@ matTags = [3]
 thickness = [100. * mm]
 θ = [0 * deg2rad]
 
+I = (Lb * (sum(thickness)**3)) / 12.0
+
 gFact = [0.0, 0.0, 0.0]
 
 
@@ -215,11 +218,35 @@ ops.timeSeries("Linear", 1)
 # create a plain load pattern
 ops.pattern("Plain", 1, 1)
 
+
 print("Loading nodes")
 
-Pz = 4.0
-ops.load(16, 0, 0, Pz / 2.0)
-ops.load(8, 0, 0, Pz / 2.0)
+# Pz = 4.0
+# Pz=2
+# ops.load(16, 0, 0, Pz / 2.0)
+# ops.load(8, 0, 0, Pz / 2.0)
+
+I      = Lb*(sum(thickness)**3)/12.0;
+moment = (2*np.pi*E1*I)/La; # final bending moment to make the strip a circle
+# Pz = moment/I/4
+
+deltaL=(1-0.95)*La
+Pz=moment/deltaL/4
+
+Pz=0.5
+
+
+followerLoadsPos = [0.0, 0.0, Pz] 
+followerLoadsNeg = [0.0, 0.0, -Pz/2]
+
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.0, *followerLoadsPos)
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
+
+# Trying to put it in the middle
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.5, *followerLoadsPos)
+
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg) 
+# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
 
 print("Finished loading nodes")
 
@@ -236,7 +263,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps = 20
+nSteps = 10
 ops.integrator("LoadControl", 1.0 / nSteps)
 
 # ops.algorithm("Linear")
@@ -258,36 +285,50 @@ import matplotlib.pyplot as plt
 data = np.zeros((nSteps + 1, 3))
 
 for j in range(nSteps):
-    result = ops.analyze(1)
-    if result != 0:
-        break
-        exit(-1)
-    else:
-        # Adding deformation to controlPts
-        controlPts = surf.ctrlpts2d[:]
-        controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))  # Flipping tp u,v
+   result = ops.analyze(1)
+   if result != 0:
+      break
+      exit(-1)
+   else:
+   # Adding deformation to controlPts
+      controlPts = surf.ctrlpts2d[:]
+      controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
 
-        fDef = 1e0
-        i = 1
-        for dim in controlPts:
-            for point in dim:
-                point[:3] += fDef * np.array(ops.nodeDisp(i))
-                i += 1
+      fDef = 1
+      i = 1
+      for dim in controlPts:
+         for point in dim:
+            point[:3] += fDef * np.array(ops.nodeDisp(i))
+            i += 1
 
-        # Setting control points for surface
-        controlPts = compatibility.flip_ctrlpts2d(controlPts)
-        controlPts = (np.array(controlPts).reshape(
+      # Setting control points for surface
+      controlPts = compatibility.flip_ctrlpts2d(controlPts)
+      controlPts = (np.array(controlPts).reshape(
             nPoints, 4))
-        surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
+      surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
-        # Visualize surface
-        surfVisualize(surf, hold=True)
+      # Visualize surface
+      surfVisualize(surf, hold=True)
 
-        data[j + 1, 0] = abs(ops.nodeDisp(nPoints, 3))
-        data[j + 1, 1] = abs(ops.nodeDisp(nPoints, 1))
-        data[j + 1, 2] = abs(ops.getLoadFactor(1) * Pz)
+      controlPts = surf.ctrlpts2d[:]
+      controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
+      i=1
+      for dim in controlPts:
+         for point in dim:
+            point[:3] -= fDef * np.array(ops.nodeDisp(i))
+            i += 1
 
-        print("\nNext load step\n")
+
+      data[j + 1, 0] = abs(ops.nodeDisp(nPoints, 3))
+      data[j + 1, 1] = abs(ops.nodeDisp(nPoints, 1))
+      data[j + 1, 2] = abs(ops.getLoadFactor(1) * Pz)
+      elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
+      print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1)*Pz)
+      print("elasticSolution: ", elasticSolution)
+      print("data[j+1,0]: ", data[j+1,0])
+
+
+      print("\nNext load step\n")
 
 plt.plot(data[:, 0], data[:, 2], '-or')
 plt.plot(data[:, 1], data[:, 2], '-or')
@@ -297,7 +338,6 @@ plt.show()
 
 print("Done")
 
-I = (Lb * (sum(thickness)**3)) / 12.0
 elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
 
 print("elasticSolution: ", elasticSolution)
