@@ -209,8 +209,6 @@ ops.timeSeries("Linear", 1)
 # create a plain load pattern
 ops.pattern("Plain", 1, 1)
 
-# Create test
-ops.test("NormDispIncr", 1.0e-5, 500, 1)
 
 print("Loading nodes")
 
@@ -233,6 +231,7 @@ ops.numberer("Plain")
 
 # create constraint handler
 ops.constraints("Plain")
+# ops.constraints("Penalty",1,1)
 
 
 # ops.algorithm("Linear")
@@ -248,7 +247,8 @@ ops.algorithm("Newton")
 nSteps = 30
 ops.integrator("LoadControl", 1.0 / nSteps)
 
-
+# Create test
+ops.test("NormDispIncr", 1.0e-5, 500, 1)
 
 # create analysis object
 ops.analysis("Static")
@@ -309,8 +309,8 @@ for j in range(nSteps):
       print("elasticSolution: ", elasticSolution)
       print("data[j+1,0]: ", data[j + 1, 0])
 
-      B=ops.printB('-ret')
-      print("B: ", B)
+      # B=ops.printB('-ret')
+      # print("B: ", B)
 
       print("\nNext load step\n")
 
