@@ -232,8 +232,9 @@ moment = (2*np.pi*E1*I)/La; # final bending moment to make the strip a circle
 
 deltaL=(1-0.95)*La
 Pz=moment/deltaL/4
+Pz=moment/I/200000
 
-Pz=0.5
+# Pz=0.5
 
 
 followerLoadsPos = [0.0, 0.0, Pz] 
@@ -263,7 +264,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps = 10
+nSteps = 30
 ops.integrator("LoadControl", 1.0 / nSteps)
 
 # ops.algorithm("Linear")
@@ -285,26 +286,29 @@ import matplotlib.pyplot as plt
 data = np.zeros((nSteps + 1, 3))
 
 for j in range(nSteps):
-   result = ops.analyze(1)
-   if result != 0:
+  print("=================================")
+  print(f"Load step {j}")
+  print("=================================")
+  result = ops.analyze(1)
+  if result != 0:
       break
       exit(-1)
-   else:
-   # Adding deformation to controlPts
+  else:
+      # Adding deformation to controlPts
       controlPts = surf.ctrlpts2d[:]
       controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
 
       fDef = 1
       i = 1
       for dim in controlPts:
-         for point in dim:
-            point[:3] += fDef * np.array(ops.nodeDisp(i))
-            i += 1
+          for point in dim:
+              point[:3] += fDef * np.array(ops.nodeDisp(i))
+              i += 1
 
       # Setting control points for surface
       controlPts = compatibility.flip_ctrlpts2d(controlPts)
       controlPts = (np.array(controlPts).reshape(
-            nPoints, 4))
+          nPoints, 4))
       surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
       # Visualize surface
@@ -312,36 +316,33 @@ for j in range(nSteps):
 
       controlPts = surf.ctrlpts2d[:]
       controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
-      i=1
+      i = 1
       for dim in controlPts:
-         for point in dim:
-            point[:3] -= fDef * np.array(ops.nodeDisp(i))
-            i += 1
+          for point in dim:
+              point[:3] -= fDef * np.array(ops.nodeDisp(i))
+              i += 1
 
-
-      data[j + 1, 0] = abs(ops.nodeDisp(nPoints, 3))
-      data[j + 1, 1] = abs(ops.nodeDisp(nPoints, 1))
-      data[j + 1, 2] = abs(ops.getLoadFactor(1) * Pz)
-      elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
-      print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1)*Pz)
-      print("elasticSolution: ", elasticSolution)
-      print("data[j+1,0]: ", data[j+1,0])
+      # Setting control points for surface
+      controlPts = compatibility.flip_ctrlpts2d(controlPts)
+      controlPts = (np.array(controlPts).reshape(
+          nPoints, 4))
+      surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
 
       print("\nNext load step\n")
 
-plt.plot(data[:, 0], data[:, 2], '-or')
-plt.plot(data[:, 1], data[:, 2], '-or')
-plt.xlabel('Horizontal Displacement')
-plt.ylabel('Horizontal Load')
-plt.show()
+# plt.plot(data[:, 0], data[:, 2], '-or')
+# plt.plot(data[:, 1], data[:, 2], '-or')
+# plt.xlabel('Horizontal Displacement')
+# plt.ylabel('Horizontal Load')
+# plt.show()
 
-print("Done")
+# print("Done")
 
-elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
+# elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
 
-print("elasticSolution: ", elasticSolution)
-print("data[nSteps,0]: ", data[nSteps, 0])
+# print("elasticSolution: ", elasticSolution)
+# print("data[nSteps,0]: ", data[nSteps, 0])
 
 
 print("Finished analysis")

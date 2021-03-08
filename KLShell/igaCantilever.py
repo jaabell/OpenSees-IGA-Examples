@@ -66,14 +66,14 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 # These are given in v,u
 controlPts = np.array([ 
-    [0     , 0 , 0 , 1] ,
-    [La*1/3 , 0 , 0 , 1] ,
-    [La*2/3   , 0  , 0 , 1] ,
-    [La       , 0  , 0 , 1],  
-    [0     , Lb , 0 , 1] ,
-    [La*1/3 , Lb , 0 , 1] ,
-    [La*2/3   , Lb  , 0 , 1] ,
-    [La       , Lb  , 0 , 1] 
+    [0      , 0  , 0 , 2] ,
+    [La*1/3 , 0  , 0 , 2] ,
+    [La*2/3 , 0  , 0 , 2] ,
+    [La     , 0  , 0 , 2] ,
+    [0      , Lb , 0 , 2] ,
+    [La*1/3 , Lb , 0 , 2] ,
+    [La*2/3 , Lb , 0 , 2] ,
+    [La     , Lb , 0 , 2]
 ])
 
 
@@ -200,7 +200,7 @@ print("Finished loading nodes")
 print("Starting analysis")
 
 # create SOE
-ops.system("FullGeneral")
+ops.system("UmfPack")
 
 # create DOF number
 ops.numberer("Plain")
@@ -245,11 +245,11 @@ print("Finished analysis")
 controlPts = surf.ctrlpts2d[:]
 controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-fDef = 1e0
+fDef = 1e2
 i = 1
 for dim in controlPts:
     for point in dim:
-        point[:3] += fDef * np.array(ops.nodeDisp(i))
+        point[:3] += fDef * np.array(ops.nodeDisp(i)) 
         i += 1
 
 controlPts = compatibility.flip_ctrlpts2d(controlPts)

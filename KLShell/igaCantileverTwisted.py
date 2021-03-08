@@ -1,7 +1,5 @@
 #  IGA CANTILEVER PLATE. GEOMETRY OBTAINED FROM NGUYEN'S igaCicleBendingStrip2D
 
-# Validado, Lunes 1 de Marzo
-
 
 import numpy as np
 import opensees as ops
@@ -58,8 +56,8 @@ def generateKnotVector(deg, nPts):
 
 
 
-La = 10.0    #
-Lb = 1.0    #
+La = 10;    #
+Lb = 1.0;    #
 mm = 1.0 / 1000.  # m
 
 
@@ -68,30 +66,30 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 # These are given in v,u
 controlPts = np.array([
-  [0.00000  , 0.0 , 0.0 , 1.0] ,
-  [0.00000  , 1.0 , 0.0 , 1.0] ,
-  [0.31250  , 0.0 , 0.0 , 1.0] ,
-  [0.31250  , 1.0 , 0.0 , 1.0] ,
-  [0.93750  , 0.0 , 0.0 , 1.0] ,
-  [0.93750  , 1.0 , 0.0 , 1.0] ,
-  [1.87500  , 0.0 , 0.0 , 1.0] ,
-  [1.87500  , 1.0 , 0.0 , 1.0] ,
-  [3.12500  , 0.0 , 0.0 , 1.0] ,
-  [3.12500  , 1.0 , 0.0 , 1.0] ,
-  [4.37500  , 0.0 , 0.0 , 1.0] ,
-  [4.37500  , 1.0 , 0.0 , 1.0] ,
-  [5.62500  , 0.0 , 0.0 , 1.0] ,
-  [5.62500  , 1.0 , 0.0 , 1.0] ,
-  [6.87500  , 0.0 , 0.0 , 1.0] ,
-  [6.87500  , 1.0 , 0.0 , 1.0] ,
-  [8.12500  , 0.0 , 0.0 , 1.0] ,
-  [8.12500  , 1.0 , 0.0 , 1.0] ,
-  [9.06250  , 0.0 , 0.0 , 1.0] ,
-  [9.06250  , 1.0 , 0.0 , 1.0] ,
-  [9.68750  , 0.0 , 0.0 , 1.0] ,
-  [9.68750  , 1.0 , 0.0 , 1.0] ,
-  [10.00000 , 0.0 , 0.0 , 1.0] ,
-  [10.00000 , 1.0 , 0.0 , 1.0]
+[0.00000  , 0.00000 , 0.00000 , 1],
+[0.00000  , 1.00000 , 0.00000 , 1],
+[0.31250  , 0.00000 , 0.00000 , 1],
+[0.31250  , 1.00000 , 0.00000 , 1],
+[0.93750  , 0.00000 , 0.00000 , 1],
+[0.93750  , 1.00000 , 0.00000 , 1],
+[1.87500  , 0.00000 , 0.00000 , 1],
+[1.87500  , 1.00000 , 0.00000 , 1],
+[3.12500  , 0.00000 , 0.00000 , 1],
+[3.12500  , 1.00000 , 0.00000 , 1],
+[4.37500  , 0.00000 , 0.00000 , 1],
+[4.37500  , 1.00000 , 0.00000 , 1],
+[5.62500  , 0.00000 , 0.00000 , 1],
+[5.62500  , 1.00000 , 0.00000 , 1],
+[6.87500  , 0.00000 , 0.00000 , 1],
+[6.87500  , 1.00000 , 0.00000 , 1],
+[8.12500  , 0.00000 , 0.00000 , 1],
+[8.12500  , 1.00000 , 0.00000 , 1],
+[9.06250  , 0.00000 , 0.00000 , 1],
+[9.06250  , 1.00000 , 0.00000 , 1],
+[9.68750  , 0.00000 , 0.00000 , 1],
+[9.68750  , 1.00000 , 0.00000 , 1],
+[10.00000 , 0.00000 , 0.0000  , 1],
+[10.00000 , 1.00000 , 0.0000  , 1]
 ])
 
 
@@ -117,12 +115,13 @@ surf.knotvector_v = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 # Visualize surface
 surfVisualize(surf, hold=True)
 
+
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
 E1 = 1.2e6  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
-rho = 0.5e2  # kg/m^3
+rho = 2.0e2  # kg/m^3
 
 
 tagNDmat1 = 1
@@ -183,22 +182,24 @@ for n in ops.getNodeTags():
     if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
     else:
-        ops.fix(n, 0, 1, 0)
+        ops.fix(n, 1, 0, 0)
 
 
 # equalDOFnodes_master = np.arange(2 * surf.ctrlpts_size_u + 1, nPoints, surf.ctrlpts_size_u)
-masterNodes = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-retainedNodes = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+masterNodes = [3, 4, 5, 6, 7, 8]
+retainedNodes = [11, 12, 13, 14, 15, 16]
 
 for i in range(len(masterNodes)):
     masterNode = masterNodes[i]
     retainedNode = retainedNodes[i]
-    ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
+    # ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
 
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
+
+# exit()
 
 
 # ------------------------------
@@ -206,6 +207,7 @@ print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 # ------------------------------
 
 # create TimeSeries
+# ops.timeSeries("Constant", 1)
 ops.timeSeries("Linear", 1)
 
 # create a plain load pattern
@@ -214,16 +216,40 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 
-Pz = 4.0
-ops.load(24, 0, 0, Pz / 2.0)
-ops.load(12, 0, 0, Pz / 2.0)
+I      = Lb*(sum(thickness)**3)/12.0
+G=E1/2/(1+nu)
+twistAngle = 8*np.pi
+It=Lb*(sum(thickness)**3)/3.0
+moment = twistAngle*G*It/La; # final bending moment to make the strip a circle
 
-I = Lb * (sum(thickness)**3) / 12.0
+
+nSteps = 300
+Pz=moment/Lb/nSteps
+
+followerLoadsPos = [0.0, 0.0, Pz] 
+followerLoadsNeg = [0.0, 0.0, -Pz]
+
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.0, *followerLoadsNeg)
 
 print("Finished loading nodes")
 
 
 print("Starting analysis")
+
+# Create test
+# ops.test("NormDispIncr", 1.0e-4, 300, 1)
+# ops.test("NormUnbalance", 1.0e-5, 300, 1)
+ops.test("EnergyIncr", 1.0e-4, 300, 1) # This got to 22.7334 (more than π/2)
+
+# ops.algorithm("Linear")
+# ops.algorithm("Newton")
+# ops.algorithm("SecantNewton")
+# ops.algorithm("NewtonLineSearch",True)
+ops.algorithm("NewtonLineSearch",'-type', 'Bisection')
+# ops.algorithm("ModifiedNewton")
+# ops.algorithm("KrylovNewton")
+
 
 # create SOE
 ops.system("FullGeneral")
@@ -233,24 +259,9 @@ ops.numberer("Plain")
 
 # create constraint handler
 ops.constraints("Plain")
-# ops.constraints("Penalty",1,1)
-
-
-# ops.algorithm("Linear")
-ops.algorithm("Newton")
-# ops.algorithm("SecantNewton")
-# ops.algorithm("NewtonLineSearch")
-# ops.algorithm("ModifiedNewton")
-# ops.algorithm("KrylovNewton")
-# ops.algorithm("BFGS")
-# ops.algorithm("Broyden")
 
 # create integrator
-nSteps = 30
-ops.integrator("LoadControl", 1.0 / nSteps)
-
-# Create test
-ops.test("NormDispIncr", 1.0e-5, 500, 1)
+ops.integrator("LoadControl", 1.0/nSteps)
 
 # create analysis object
 ops.analysis("Static")
@@ -287,7 +298,8 @@ for j in range(nSteps):
       surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
       # Visualize surface
-      surfVisualize(surf, hold=True)
+      if j==nSteps-1 or j%6==0:
+        surfVisualize(surf, hold=True)
 
       controlPts = surf.ctrlpts2d[:]
       controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
@@ -303,31 +315,51 @@ for j in range(nSteps):
           nPoints, 4))
       surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
-      data[j + 1, 0] = abs(ops.nodeDisp(nPoints, 3))
-      data[j + 1, 1] = abs(ops.nodeDisp(nPoints, 1))
-      data[j + 1, 2] = abs(ops.getLoadFactor(1) * Pz)
-      elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
-      print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1) * Pz)
-      print("elasticSolution: ", elasticSolution)
-      print("data[j+1,0]: ", data[j + 1, 0])
+      print("ops.nodeDisp(12,3): ", ops.nodeDisp(12,3))
+      print("ops.nodeDisp(24,3): ", ops.nodeDisp(24,3))
 
-      # B=ops.printB('-ret')
-      # print("B: ", B)
+
+      # # Obtain A and B from gimmeMCK
+      # ops.wipeAnalysis()
+
+      # ops.system('FullGeneral')
+      # ops.analysis("Transient")
+      # ops.integrator('GimmeMCK', 0.0,0.0,1.0)
+      # ops.analyze(1,0.0)
+      # N = ops.systemSize() # Has to be done after analyze
+  
+      # K = ops.printA('-ret') # Or use ops.printA('-file','K.out')
+      # K = np.array(K) # Convert the list to an array
+      # K.shape = (N,N) # Make the array an NxN matrix
+
+      # print("K: ", K)
+
+      # # Return to normal analysis
+
+      # ops.wipeAnalysis()
+      # ops.system("FullGeneral")
+      # ops.numberer("Plain")
+      # ops.constraints("Plain")
+      # ops.integrator("LoadControl", 1.0 / nSteps)
+      # ops.algorithm("Newton")
+      # ops.test("NormDispIncr", 1.0e-5, 100, 1)
+      # ops.analysis("Static")
 
       print("\nNext load step\n")
 
-plt.plot(data[:, 0], data[:, 2], '-or')
-plt.plot(data[:, 1], data[:, 2], '-or')
-plt.xlabel('Horizontal Displacement')
-plt.ylabel('Horizontal Load')
-plt.show()
+surfVisualize(surf, hold=True)
+# plt.plot(data[:, 0], data[:, 2], '-or')
+# plt.plot(data[:, 1], data[:, 2], '-or')
+# plt.xlabel('Horizontal Displacement')
+# plt.ylabel('Horizontal Load')
+# plt.show()
 
-print("Done")
+# print("Done")
 
-elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
+# elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
 
-print("elasticSolution: ", elasticSolution)
-print("data[nSteps,0]: ", data[nSteps, 0])
+# print("elasticSolution: ", elasticSolution)
+# print("data[nSteps,0]: ", data[nSteps, 0])
 
 
 print("Finished analysis")
