@@ -148,7 +148,7 @@ deg2rad = pi / 180
 # thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 # θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-matTags = [4]
+matTags = [3]
 thickness = [50. * mm]
 θ = [0 * deg2rad]
 
