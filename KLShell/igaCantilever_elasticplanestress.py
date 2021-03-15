@@ -14,11 +14,10 @@ E1 = 1000.
 nu = 0.3
 rho = 2000.
 
-ops.nDMaterial("ElasticPlaneStress", tagNDmat1, E1, nu, rho)
-# ops.nDMaterial("ElasticPlaneStress", tagNDmat1, E1, nu, rho)
 
 
-exit()
+
+# exit()
 def getCtrlPtsAndWeights(surf):
     # Flip control points to [u][v] (they are given by the getters in [v][u])
     noPtsX = surf.ctrlpts_size_u
@@ -124,6 +123,8 @@ rho = 8.0e3  # *9.807 # kg/m^3
 t = 0.05
 
 
+
+
 tagNDmat1 = 1
 ops.nDMaterial("ElasticIsotropic", tagNDmat1, E1, nu, rho)
 
@@ -131,22 +132,25 @@ tagNDmat2 = 2
 ops.nDMaterial("ElasticIsotropic", tagNDmat2, E2, nu, rho)
 
 
+
+
 # nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
 tagPlaneStress1 = 3
-ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
+ops.nDMaterial("ElasticPlaneStress", tagPlaneStress1, E1, nu, rho)
+# ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
 
 tagPlaneStress2 = 4
 ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 
 deg2rad = pi / 180
 
-matTags = [3, 4, 3, 4, 3]
-thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
-θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
+# matTags = [3, 4, 3, 4, 3]
+# thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
+# θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-# matTags = [3]
-# thickness = [50. * mm]
-# θ = [0 * deg2rad]
+matTags = [4]
+thickness = [50. * mm]
+θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0 * 9.807]
 

@@ -118,9 +118,9 @@ surfVisualize(surf, hold=True)
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 1.2e6  # Young's modulus N/m^2
+E1 = 1.2e7  # Young's modulus N/m^2
 E2 = E1
-nu = 0.0  # Poisson's ratio
+nu = 0.3  # Poisson's ratio
 rho = 2.0e2  # kg/m^3
 
 
@@ -145,7 +145,7 @@ deg2rad = pi / 180
 # θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
 matTags = [3]
-thickness = [100. * mm]
+thickness = [10. * mm]
 θ = [0 * deg2rad]
 
 I = (Lb * (sum(thickness)**3)) / 12.0
@@ -181,18 +181,18 @@ fixedNodes = [1, 2, 13, 14]
 for n in ops.getNodeTags():
     if n in fixedNodes:
         ops.fix(n, 1, 1, 1)
-    else:
-        ops.fix(n, 1, 0, 0)
+    # else:
+    #     ops.fix(n, 1, 0, 0)
 
 
 # equalDOFnodes_master = np.arange(2 * surf.ctrlpts_size_u + 1, nPoints, surf.ctrlpts_size_u)
-masterNodes = [3, 4, 5, 6, 7, 8]
-retainedNodes = [11, 12, 13, 14, 15, 16]
+masterNodes = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+retainedNodes = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
 
 for i in range(len(masterNodes)):
     masterNode = masterNodes[i]
     retainedNode = retainedNodes[i]
-    # ops.equalDOF(int(masterNode), int(retainedNode), 1, 2, 3)
+    ops.equalDOF(int(masterNode), int(retainedNode), 1)
 
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
@@ -218,12 +218,20 @@ print("Loading nodes")
 
 I      = Lb*(sum(thickness)**3)/12.0
 G=E1/2/(1+nu)
+twistAngle = 2*np.pi*3.2
 twistAngle = 8*np.pi
 It=Lb*(sum(thickness)**3)/3.0
-moment = twistAngle*G*It/La; # final bending moment to make the strip a circle
+
+Ip = Lb*sum(thickness)/12*(Lb**2+sum(thickness)**2)
+
+print("Ip: ", Ip)
+print("It: ", It)
+
+moment = twistAngle*G*It/La; 
+# moment = twistAngle*G*Ip/La; 
 
 
-nSteps = 300
+nSteps = 100
 Pz=moment/Lb/nSteps
 
 followerLoadsPos = [0.0, 0.0, Pz] 
@@ -252,7 +260,7 @@ ops.algorithm("NewtonLineSearch",'-type', 'Bisection')
 
 
 # create SOE
-ops.system("FullGeneral")
+ops.system("UmfPack")
 
 # create DOF number
 ops.numberer("Plain")
@@ -298,7 +306,8 @@ for j in range(nSteps):
       surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
       # Visualize surface
-      if j==nSteps-1 or j%6==0:
+      # if j==nSteps-1 or j%10==0:
+      if j==nSteps-1:
         surfVisualize(surf, hold=True)
 
       controlPts = surf.ctrlpts2d[:]

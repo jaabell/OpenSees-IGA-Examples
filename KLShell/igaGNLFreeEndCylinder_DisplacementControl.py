@@ -617,15 +617,15 @@ controlPts = np.array([
 # [0.0     , 1.016   , 3.048   , 1.0     ]
 # ])
 
-# for point in controlPts: # only use this if using refined mesh
+# for point in controlPts: # Just testing because the Sze paper appears to have these measures
 #   for i in range(3):
-#         point[i] *= point[3]
+#         point[i] *= 100
 
 
 
 patchTag = 1
-P = 4
-Q = 4
+P = 5
+Q = 5
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -675,7 +675,7 @@ deg2rad = pi / 180
 # θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
 matTags = [3]
-thickness = [3.0 / 100.0]
+thickness = [3.0/100]
 θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0]
@@ -791,8 +791,10 @@ print("Finished loading nodes")
 print("Starting analysis")
 
 # Create test
-# ops.test("NormDispIncr", 1.0e-4, 60, 1)
-ops.test("NormUnbalance", 1.0e-4, 60, 1)
+# ops.test("NormDispIncr", 1.0e-3, 100, 1) # Apparently faster
+# ops.test("NormUnbalance", 1.0e-4, 60, 1)
+ops.test("EnergyIncr", 1.0e-3, 100, 1)
+
 
 # create SOE
 ops.system("UmfPack")
@@ -808,14 +810,14 @@ ops.constraints("Plain")
 # ops.algorithm("Linear")
 # ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
+ops.algorithm("NewtonLineSearch", 'type', 'RegulaFalsi')
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")
 # ops.algorithm("Broyden")
 
 # create integrator
-delta = -0.2
+delta = -0.05
 defMax = 1.7
 nSteps = abs(int(defMax / delta))
 # ops.integrator("LoadControl", 1.0 / nSteps)
@@ -886,7 +888,13 @@ for j in range(nSteps):
 
         print("\nNext load step\n")
 
-plt.plot(data[:, 0], data[:, 1], '-or')
+P= Pz/1000*np.array([0,0.05,0.1,0.125,0.15,0.175,0.20,0.225,0.25,0.275,0.3,0.325,0.35,0.40,0.45,0.5,0.55, 0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1])
+
+wA = 1.0/100*np.array([ 0,5.421,16.1,22.195,27.657,32.7,37.582,42.633,48.537,56.355,66.41,79.81,94.669,113.704,124.751,132.653,138.92,144.185,148.77,152.863,156.584,160.015,163.211,166.2,168.973,171.505])
+
+
+plt.plot(data[:, 0]/100, 2*data[:, 1], 'or')
+plt.plot(wA, P, '-r')
 plt.xlabel('Downward deflection at point A x100')
 plt.ylabel('Load at point A x1000')
 plt.show()

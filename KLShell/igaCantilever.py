@@ -57,7 +57,7 @@ def generateKnotVector(deg, nPts):
 
 
 
-La = 10.0  	#
+La = 50.0  	#
 Lb = 1.0  	#
 mm = 1.0 / 1000.  # m
 
@@ -76,10 +76,21 @@ controlPts = np.array([
     [La     , Lb , 0 , 2]
 ])
 
+controlPts = np.array([ 
+    [0      , 0  , 0 , 2] ,
+    [0      , Lb , 0 , 2] ,
+    [La*1/3 , 0  , 0 , 2] ,
+    [La*1/3 , Lb , 0 , 2] ,
+    [La*2/3 , 0  , 0 , 2] ,
+    [La*2/3 , Lb , 0 , 2] ,
+    [La     , 0  , 0 , 2] ,
+    [La     , Lb , 0 , 2]
+])
+
 
 patchTag = 1
-P = 1
-Q = 3
+P = 3
+Q = 1
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -89,7 +100,7 @@ surf.degree_u = P
 surf.degree_v = Q
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts.tolist(), 2, 4)
+surf.set_ctrlpts(controlPts.tolist(), 4, 2)
 
 # Set knot vectors
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -108,11 +119,11 @@ surfVisualize(surf, hold=True)
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 2.1e11  # Young's modulus N/m^2
+E1 = 100  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
 rho = 8.0e3  # *9.807 # kg/m^3
-t = 0.05
+t = 1
 
 
 tagNDmat1 = 1
@@ -135,9 +146,9 @@ matTags = [3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-# matTags = [3]
-# thickness = [50. * mm]
-# θ = [0 * deg2rad]
+matTags = [3]
+thickness = [t]
+θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0 * 9.807]
 
@@ -146,8 +157,6 @@ Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
-
-print("controlPts.tolist(): ", controlPts.tolist())
 
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
@@ -163,7 +172,7 @@ ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
 
 
 for n in [1,2,3,4,5,6,7,8]:
-    if n in [1,2,3,4]:
+    if n in [1,2,5,6]:
         ops.fix(n,1,1,1)
     else:
         ops.fix(n,1,1,0)
@@ -188,9 +197,9 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 # Cargar nodos 7,8
-Pz=1e2
-for n in [7,8]:
-    ops.load(n,0,0,Pz/2.0)
+Pz=1
+for n in [4,8]:
+    ops.load(n,0,0,-Pz)
 print("Finished loading nodes")
 
 
@@ -230,7 +239,7 @@ import matplotlib.pyplot as plt
 data=np.zeros((nSteps+1,2))
 for j in range(nSteps):
     ops.analyze(1)
-    data[j+1,0] = 1000*ops.nodeDisp(8,3)
+    data[j+1,0] = ops.nodeDisp(4,3)
     data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
     # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
 
@@ -258,7 +267,7 @@ controlPts = (np.array(controlPts).reshape(
     surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts, 2, 4)
+surf.set_ctrlpts(controlPts, 4, 2)
 
 
 # Set knot vectors
@@ -274,16 +283,16 @@ noPtsY = surf.ctrlpts_size_v
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
-print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+print("ops.nodeDisp(7,2): ", np.array(ops.nodeDisp(4)),"mm")
+print("ops.nodeDisp(8,2): ", np.array(ops.nodeDisp(8)),"mm")
 
 I=(Lb*(sum(thickness)**3))/12.0
-elasticSolution=(Pz*(La**3))/(3*E1*I)
+elasticSolution=(2*Pz*(La**3))/(3*E1*I)
 
-result=1000*np.array(ops.nodeDisp(7,3))
+result=np.array(ops.nodeDisp(4,3))
 
 print("result: ", result)
-print("elasticSolution: ", 1000*elasticSolution)
+print("elasticSolution: ", elasticSolution)
 
 print("Done")
 

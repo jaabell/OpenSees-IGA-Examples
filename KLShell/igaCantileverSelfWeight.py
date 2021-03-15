@@ -1,4 +1,4 @@
-#  IGA CANTILEVER PLATE. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
+#  IGA CANTILEVER PLATE UNDER SELF WEIGHT. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
 
 
 import numpy as np
@@ -66,20 +66,22 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 # These are given in v,u
 controlPts = np.array([ 
-    [0     , 0 , 0 , 1] ,
-    [La*1/3 , 0 , 0 , 1] ,
-    [La*2/3   , 0  , 0 , 1] ,
-    [La       , 0  , 0 , 1],  
-    [0     , Lb , 0 , 1] ,
-    [La*1/3 , Lb , 0 , 1] ,
-    [La*2/3   , Lb  , 0 , 1] ,
-    [La       , Lb  , 0 , 1] 
+    [0      , 0  , 0 , 1] ,
+    [La*1/4 , 0  , 0 , 1] ,
+    [La*2/4 , 0  , 0 , 1] ,
+    [La*3/4 , 0  , 0 , 1] ,
+    [La     , 0  , 0 , 1] ,
+    [0      , Lb , 0 , 1] ,
+    [La*1/4 , Lb , 0 , 1] ,
+    [La*2/4 , Lb , 0 , 1] ,
+    [La*3/4 , Lb , 0 , 1] ,
+    [La     , Lb , 0 , 1]
 ])
 
 
 patchTag = 1
 P = 1
-Q = 3
+Q = 4
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -89,7 +91,7 @@ surf.degree_u = P
 surf.degree_v = Q
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts.tolist(), 2, 4)
+surf.set_ctrlpts(controlPts.tolist(), 2, 5)
 
 # Set knot vectors
 uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -110,8 +112,8 @@ surfVisualize(surf, hold=True)
 # $poisson_probeta
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
-nu = 0.4  # Poisson's ratio
-rho = 4.0e2  # kg/m^3
+nu = 0  # Poisson's ratio
+rho = 1.0e4  # kg/m^3
 
 
 
@@ -135,9 +137,6 @@ matTags = [3, 4, 3, 4, 3]
 thickness = [10. * mm, 10. * mm, 10. * mm, 10. * mm, 10. * mm]
 θ = [0 * deg2rad, 45 * deg2rad, 90 * deg2rad, -45 * deg2rad, 0 * deg2rad]
 
-# matTags = [3]
-# thickness = [50. * mm]
-# θ = [0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0]
 
@@ -154,25 +153,21 @@ print("controlPts.tolist(): ", controlPts.tolist())
 
 ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
+        "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
-# exit()
 
 
-for n in [1,2,3,4,5,6,7,8]:
+for n in [1,2,3,4,5,6,7,8,9,10]:
     if n in [1,2,3,4]:
         ops.fix(n,1,1,1)
     else:
-        ops.fix(n,1,1,0)
+        ops.fix(n,0,1,0)
 
-# # #Fijar nodos 1, 2, 3, 4
-# for n in [1,2,3,4]:
-#     ops.fix(n,1,1,1)
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
@@ -189,11 +184,6 @@ ops.timeSeries("Linear", 1)
 ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
-# Cargar nodos 7,8
-# Pz=0.5e2
-# for n in [7,8]:
-#     ops.load(n,0,0,Pz)
-
 weight = [0.0, 0.0, -9.8066]
 ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
 print("Finished loading nodes")
@@ -212,14 +202,10 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=10
+nSteps=1
 ops.integrator("LoadControl", 1.0/nSteps)
-# ops.integrator("LoadControl", 1.0)
 
-# ops.algorithm("Linear")
-ops.algorithm("Newton")
-# ops.algorithm("ModifiedNewton")
-# ops.algorithm("KrylovNewton")
+ops.algorithm("Linear")
 
 # Create test
 ops.test("NormDispIncr", 1.0e-8, 300,1)
@@ -233,15 +219,6 @@ import matplotlib.pyplot as plt
 data=np.zeros((nSteps+1,2))
 for j in range(nSteps):
     ops.analyze(1)
-    # data[j+1,0] = 1000*ops.nodeDisp(8,3)
-    # data[j+1,1] = ops.getLoadFactor(1)*(2*Pz)
-    # print("data[j+1,0],data[j+1,1]: ", data[j+1,0],data[j+1,1])
-
-# plt.plot(data[:,0], data[:,1])
-# plt.plot(data[:,0], data[:,1],'or')
-# plt.xlabel('Vertical Displacement')
-# plt.ylabel('Vertical Load')
-# plt.show()
 
 print("Finished analysis")
 
@@ -261,18 +238,19 @@ controlPts = (np.array(controlPts).reshape(
     surf.ctrlpts_size_u * surf.ctrlpts_size_v, 4)).tolist()
 
 # Setting control points for surface
-surf.set_ctrlpts(controlPts, 2, 4)
+surf.set_ctrlpts(controlPts, 2, 5)
 
 
 # Visualize surface
 surfVisualize(surf, hold=True)
 
-print("ops.nodeDisp(7,2): ", 1000*np.array(ops.nodeDisp(7)),"mm")
-print("ops.nodeDisp(8,2): ", 1000*np.array(ops.nodeDisp(8)),"mm")
+print("ops.nodeDisp(7,2): ", 1000*ops.nodeDisp(9,3),"mm")
+print("ops.nodeDisp(8,2): ", 1000*ops.nodeDisp(10,3),"mm")
 
 I=(Lb*(sum(thickness)**3))/12.0
-W=rho*weight[2]*sum(thickness)
+W=rho*weight[2]*(sum(thickness)*Lb)
 elasticSolution = abs(W*La**4/(8*E1*I))
+
 print("elasticSolution: ", 1000*elasticSolution, "mm")
 
 print("Done")

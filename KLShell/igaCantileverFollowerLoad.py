@@ -123,7 +123,7 @@ surf.knotvector_v = vKnot
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
-# operations.insert_knot(surf,[None,0.95],[0,1])
+operations.insert_knot(surf,[None,0.95],[0,1])
 
 
 surf.knotvector_u=knotvector.generate(surf.degree_u,surf.ctrlpts_size_u)
@@ -229,12 +229,12 @@ ops.pattern("Plain", 1, 1)
 print("Loading nodes")
 I      = Lb*(sum(thickness)**3)/12.0;
 moment = (2*np.pi*E1*I)/La; # final bending moment to make the strip a circle
-# Pz = moment/I/4
+Pz = moment/I
 
 deltaL=(1-0.95)*La
-Pz=moment/deltaL/4
+Pz=moment/deltaL/10
+print("Pz: ", Pz)
 
-Pz=5e7
 
 
 followerLoadsPos = [0.0, 0.0, Pz/2] 
@@ -243,12 +243,12 @@ followerLoadsNeg = [0.0, 0.0, -Pz/2]
 ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 1.0, *followerLoadsPos)
 ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 1.0, *followerLoadsPos)
 
-# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg) 
-# ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 0.0, 0.95, *followerLoadsNeg) 
+ops.eleLoad("-ele", 1, "-type", "-IGAFollowerLoad", 1.0, 0.95, *followerLoadsNeg)
 
 print("Finished loading nodes")
 
-Pz=6e6
+# Pz=6e6
 # ops.load(nPoints-1,-Pz*3,0,Pz/2)
 # ops.load(nPoints,-Pz*3,0,Pz/2)
 
@@ -257,7 +257,11 @@ Pz=6e6
 print("Starting analysis")
 
 # create SOE
-ops.system("FullGeneral")
+ops.system("UmfPack")
+
+# Create test
+ops.test("NormDispIncr", 1.0e-4, 300, 1)
+# ops.test("EnergyIncr", 1.0e-4, 300, 1)
 
 # create DOF number
 ops.numberer("Plain")
@@ -272,14 +276,13 @@ ops.integrator("LoadControl", 1.0 / nSteps)
 # ops.integrator("LoadControl", 1.0)
 
 # ops.algorithm("Linear")
-ops.algorithm("Newton")
+# ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-# ops.algorithm("LineSearch")
+ops.algorithm("NewtonLineSearch",'-type','Bisection')
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 
-# Create test
-ops.test("NormDispIncr", 1.0e-5, 300, 1)
+
 
 # create analysis object
 ops.analysis("Static")
@@ -313,8 +316,23 @@ for j in range(nSteps):
 
         # Visualize surface
         surfVisualize(surf, hold=True)
-        e3=operations.normal(surf, [0.0,1.0], normalize=True)[1]
-        print("e3: ", e3)
+        
+        # Adding deformation to controlPts
+        controlPts = surf.ctrlpts2d[:]
+        controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping tp u,v
+
+        fDef = 1e0
+        i = 1
+        for dim in controlPts:
+            for point in dim:
+                point[:3] -= fDef * np.array(ops.nodeDisp(i))
+                i += 1
+
+        # Setting control points for surface
+        controlPts = compatibility.flip_ctrlpts2d(controlPts)
+        controlPts = (np.array(controlPts).reshape(
+            nPoints, 4))
+        surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
         print("\nNext load step\n")
 

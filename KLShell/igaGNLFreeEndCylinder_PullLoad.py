@@ -217,8 +217,8 @@ for point in controlPts:  # weighting points (x*w,y*w,z*w,w)
         point[i] *= point[3]
 
 patchTag = 1
-P = 4
-Q = 4
+P = 5
+Q = 5
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -241,7 +241,7 @@ surfVisualize(surf, hold=True)
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 10.5e6  # Young's modulus N/m^2
+E1 = 1.05e7  # Young's modulus N/m^2
 E2 = E1
 nu = 0.3125  # Poisson's ratio
 rho = 0.5e2  # kg/m^3
@@ -303,16 +303,16 @@ print("surf.ctrlpts_size_v: ", surf.ctrlpts_size_v)
 
 #  Dirichlet BCs (symmetry conditions)
 #    z
-#    | 
+#    |
 #  (D)------- (C)
 #    |      |
-#    |    L | 
-#    |  R   | 
-#  (A)------- (B) --->x 
-# 
+#    |    L |
+#    |  R   |
+#  (A)------- (B) --->x
+#
 #  AB: free
 #  Symmetry conditions on BC,CD and AD
-#    
+#
 
 nPoints = surf.ctrlpts_size_u * surf.ctrlpts_size_v
 
@@ -338,9 +338,12 @@ for n in ops.getNodeTags():
 
 
 for i in range(len(nodesOnAD)):
-    ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 1,2,3)
-    ops.equalDOF(int(nodesOnCB[i]), int(nodesNextToCB[i]), 1,2,3)
-    ops.equalDOF(int(nodesOnDC[i]), int(nodesNextToDC[i]), 1,2,3)
+    # ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 1, 2, 3)
+    ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 2)
+    # ops.equalDOF(int(nodesOnCB[i]), int(nodesNextToCB[i]), 1, 2, 3)
+    ops.equalDOF(int(nodesOnCB[i]), int(nodesNextToCB[i]), 2)
+    # ops.equalDOF(int(nodesOnDC[i]), int(nodesNextToDC[i]), 1, 2, 3)
+    ops.equalDOF(int(nodesOnDC[i]), int(nodesNextToDC[i]), 3)
 
 
 print("\n\n\nPRINTING DOMAIN-----------------------")
@@ -372,8 +375,9 @@ print("Finished loading nodes")
 print("Starting analysis")
 
 # Create test
-# ops.test("NormDispIncr", 1.0e-4, 60, 1)
-ops.test("NormUnbalance", 1.0e-4, 60, 1)
+ops.test("NormDispIncr", 1.0e-5, 200, 1) # Apparently faster
+# ops.test("NormUnbalance", 1.0e-4, 80, 1)
+# ops.test("EnergyIncr", 1.0e-4, 80, 1)
 
 # create SOE
 ops.system("UmfPack")
@@ -387,21 +391,23 @@ ops.constraints("Plain")
 
 
 # ops.algorithm("Linear")
-ops.algorithm("Newton")
+# ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
 # ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
+ops.algorithm("NewtonLineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")
 # ops.algorithm("Broyden")
 
 # create integrator
-delta = 0.1
-defMax = 2.7
-nSteps = abs(int(defMax / delta))
-# nSteps=40
-# ops.integrator("LoadControl", 1.0 / nSteps)
-ops.integrator("DisplacementControl", forcedNode, 2, delta)
+# delta = 0.1
+# defMax = 2.7
+# nSteps = abs(int(defMax / delta))
+
+nSteps = 40
+ops.integrator("LoadControl", 1.0 / nSteps)
+# ops.integrator("DisplacementControl", forcedNode, 2, delta)
 
 # create analysis object
 ops.analysis("Static")
@@ -461,8 +467,8 @@ for j in range(nSteps):
 
         data[j + 1, 0] = abs(ops.nodeDisp(forcedNode, 2))
         data[j + 1, 1] = ops.getLoadFactor(1)
-        data[j + 1, 2] = abs(ops.nodeDisp(1, 1)) # Point B
-        data[j + 1, 3] = abs(ops.nodeDisp(132, 1))
+        data[j + 1, 2] = abs(ops.nodeDisp(1, 1))  # Point B
+        data[j + 1, 3] = abs(ops.nodeDisp(133, 1))  # Point C
         # elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
         # print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1) * Pz)
         # print("elasticSolution: ", elasticSolution)
@@ -475,11 +481,26 @@ for j in range(nSteps):
 
         print("\nNext load step\n")
 
-plt.plot(data[:, 0], data[:, 1], '-or')
-plt.plot(data[:, 2], data[:, 1], '-br')
-plt.plot(data[:, 3], data[:, 1], '-gr')
-plt.xlabel('Downward deflection at point A x100')
-plt.ylabel('Load at point A x1000')
+# % refenrece solution from Sze et al, 2004
+# % Popular benchmark problems for geometric nonlinear analysis of shells
+
+P = Pz/1000 * np.array([0, 0.025 , 0.05  , 0.075 , 0.1   , 0.15  , 0.20  , 0.25  , 0.30  , 0.35  , 0.40  , 0.45  , 0.5   , 0.525 , 0.55  , 0.6   , 0.65  , 0.7   , 0.75  , 0.8   , 0.85  , 0.9   , 0.95  , 1])
+wA =     np.array([0, 0.819      , 1.26  , 1.527 , 1.707 , 1.936 , 2.079 , 2.180 , 2.257 , 2.321 , 2.376 , 2.425 , 2.473 , 2.543 , 2.577 , 2.618 , 2.648 , 2.672 , 2.692 , 2.710 , 2.726 , 2.741 , 2.755 , 2.768])
+uB =     np.array([0, 0.864      , 1.471 , 1.901 , 2.217 , 2.641 , 2.904 , 3.087 , 3.227 , 3.342 , 3.443 , 3.539 , 3.653 , 4.061 , 4.171 , 4.274 , 4.338 , 4.385 , 4.423 , 4.455 , 4.483 , 4.508 , 4.53  , 4.551])
+uC =     np.array([0, 0.872      , 1.493 , 1.946 , 2.293 , 2.792 , 3.106 , 3.310 , 3.452 , 3.556 , 3.632 , 3.688 , 3.718 , 3.580 , 3.518 , 3.452 , 3.410 , 3.378 , 3.353 , 3.332 , 3.313 , 3.297 , 3.283 , 3.269])
+
+
+plt.plot(data[:, 0], Pz /1000* data[:, 1], 'or')
+plt.plot(data[:, 2], Pz /1000* data[:, 1], 'ob')
+plt.plot(data[:, 3], Pz /1000* data[:, 1], 'og')
+
+
+plt.plot(wA, P, '-r')
+plt.plot(uB, P, '-b')
+plt.plot(uC, P, '-g')
+
+plt.xlabel('Upward deflection at point A')
+plt.ylabel('Pulling force at point A')
 plt.show()
 
 # Visualize surface
