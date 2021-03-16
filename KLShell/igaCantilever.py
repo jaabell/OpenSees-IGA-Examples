@@ -57,7 +57,7 @@ def generateKnotVector(deg, nPts):
 
 
 
-La = 50.0  	#
+La = 10.0  	#
 Lb = 1.0  	#
 mm = 1.0 / 1000.  # m
 
@@ -89,6 +89,7 @@ controlPts = np.array([
 
 
 patchTag = 1
+nodeStartTag =1
 P = 3
 Q = 1
 
@@ -119,7 +120,7 @@ surfVisualize(surf, hold=True)
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
-E1 = 100  # Young's modulus N/m^2
+E1 = 2000  # Young's modulus N/m^2
 E2 = E1
 nu = 0.0  # Poisson's ratio
 rho = 8.0e3  # *9.807 # kg/m^3
@@ -159,7 +160,7 @@ controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
+ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
         "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
@@ -254,7 +255,7 @@ print("Finished analysis")
 controlPts = surf.ctrlpts2d[:]
 controlPts = compatibility.flip_ctrlpts2d(controlPts)
 
-fDef = 1e2
+fDef = 1e0
 i = 1
 for dim in controlPts:
     for point in dim:
