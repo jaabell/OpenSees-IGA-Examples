@@ -162,15 +162,19 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))  # Flipping to u
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
+shellType = 'KLShell'
+patchTag = 1
+nodeStartTag = 1
 
-ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
-        "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
-        "-planeStressMatTags", *matTags,
-        "-gFact", *gFact,
-        "-theta", *θ,
-        "-thickness", *thickness,
-        "-uKnot", *surf.knotvector_u, "-vKnot", *surf.knotvector_v, "-controlPts", *controlPts.flatten())
+
+ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+            "-type", shellType,
+            # "-nonLinearGeometry", 0,
+            "-planeStressMatTags", *matTags,
+            "-gFact", *gFact,
+            "-theta", *θ,
+            "-thickness", *thickness,
+            "-uKnot", *surf.knotvector_u, "-vKnot", *surf.knotvector_v, "-controlPts", *controlPts.flatten())
 
 # exit()
 nPoints = surf.ctrlpts_size_u * surf.ctrlpts_size_v
@@ -287,7 +291,8 @@ for j in range(nSteps):
       surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
       # Visualize surface
-      surfVisualize(surf, hold=True)
+      if j==nSteps:
+        surfVisualize(surf, hold=True)
 
       controlPts = surf.ctrlpts2d[:]
       controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
@@ -316,8 +321,15 @@ for j in range(nSteps):
 
       print("\nNext load step\n")
 
-plt.plot(data[:, 0], data[:, 2], '-or')
-plt.plot(data[:, 1], data[:, 2], '-or')
+
+F=Pz*np.arange(0,1.05,0.05)
+U=[0,0.026,0.103,0.224,0.381,0.563,0.763,0.971,1.184,1.396,1.604,1.807,2.002,2.19,2.37,2.541,2.705,2.861,3.01,3.151,3.286]
+W=[0,0.663,1.309,1.922,2.493,3.015,3.488,3.912,4.292,4.631,4.933,5.202,5.444,5.66,5.855,6.031,6.19,6.335,6.467,6.588,6.698]
+plt.plot(data[:, 0], data[:, 2], 'or') #w
+plt.plot(W, F, '-r') #w
+plt.plot(data[:, 1], data[:, 2], 'ob') #u
+plt.plot(U, F, '-b') #u
+
 plt.xlabel('Horizontal Displacement')
 plt.ylabel('Horizontal Load')
 plt.show()
