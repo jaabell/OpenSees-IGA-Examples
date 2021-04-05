@@ -105,18 +105,19 @@ E1 = 1.2e6  # Young's modulus N/m^2
 E2 = E1
 nu12 = 0.0  # Poisson's ratio
 nu21 = 0.0  # Poisson's ratio
+G12 = E1/(2*(1-nu21)) # Shear modulus
 rho = 8.0e3  # *9.807 # kg/m^3
 t = 100. * mm
 
 
 tagPlaneStress1 = 1
-ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress1, E1, E2, nu12, nu21, rho)
+ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress1, E1, E2, nu12, nu21, G12, rho)
 
 tagPlaneStress2 = 2
-ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress2, E1, E2, nu12, nu21, rho)
+ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress2, E1, E2, nu12, nu21, G12, rho)
 
 tagPlaneStress3 = 3
-ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress3, E1 * 1e4, 0, 0, 0, rho)
+ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress3, E1 * 1e4, E1 * 1e4, 0, 0, G12, rho)
 
 
 deg2rad = pi / 180
@@ -235,7 +236,7 @@ print("Finished loading nodes")
 print("Starting analysis")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-8, 500, 2)
+ops.test("NormDispIncr", 1.0e-8, 500, 1)
 
 
 # create SOE
@@ -250,9 +251,9 @@ ops.constraints("Plain")
 
 
 # ops.algorithm("Linear")
-ops.algorithm("Newton")
+# ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-# ops.algorithm("NewtonLineSearch")
+ops.algorithm("NewtonLineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")
@@ -263,7 +264,7 @@ ops.algorithm("Newton")
 # nSteps = 50
 # ops.integrator("LoadControl", 1.0 / nSteps)
 
-delta = -0.2
+delta = -0.4
 defMax = 6.7
 nSteps = abs(int(defMax / delta))
 # ops.integrator("LoadControl", 1.0 / nSteps)

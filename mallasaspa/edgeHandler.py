@@ -44,28 +44,29 @@ def makeBendingStrip(pointsL,interface,pointsR):
 		print("Non matching dimensions")
 		return []
 
-	sizeU=3
-	sizeV=len(pointsL)
+	sizeU=len(pointsL)
+	sizeV=3
 
 	controlPts=np.zeros([sizeU*sizeV,4])
 
 	k=0
-	for i in range(sizeV):
-		controlPts[k,:]=pointsL[i]
+	for i in range(sizeU):
+		controlPts[3*i,:]=pointsL[i]
+		controlPts[3*i+1,:]=interface[i]
+		controlPts[3*i+2,:]=pointsR[i]
 		k+=1
 	for i in range(sizeV):
-		controlPts[k,:]=interface[i]
 		k+=1
 	for i in range(sizeV):
-		controlPts[k,:]=pointsR[i]
 		k+=1
 
 	# Create surface 
 	bendingStrip = NURBS.Surface()
 
 	# Set surface degrees
-	bendingStrip.degree_u = 2
-	bendingStrip.degree_v = 1
+	bendingStrip.degree_u = 1
+	bendingStrip.degree_v = 2
+
 
 
 	# for point in controlPts:

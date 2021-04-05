@@ -101,11 +101,12 @@ surf.knotvector_u = uKnot
 surf.knotvector_v = vKnot
 
 # Refine surface
-operations.refine_knotvector(surf, [0, 1])
+operations.refine_knotvector(surf, [0, 3])
+
 
 # Set surface degrees
 surf.degree_u = 1
-surf.degree_v = 5
+surf.degree_v = 4
 
 # Set knot vectors refined
 # uKnot = generateKnotVector(surf.degree_u, surf.ctrlpts_size_u)
@@ -120,25 +121,22 @@ surf.knotvector_v = vKnot
 
 
 
+
 noPtsX = surf.ctrlpts_size_u
 noPtsY = surf.ctrlpts_size_v
 
 operations.insert_knot(surf,[None,0.95],[0,1])
 
 
-surf.knotvector_u=knotvector.generate(surf.degree_u,surf.ctrlpts_size_u)
-surf.knotvector_v=knotvector.generate(surf.degree_v,surf.ctrlpts_size_v)
-
-
-
 # Visualize surface
 surfVisualize(surf, hold=True)
+
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
 # $poisson_probeta
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
-nu = 0.0  # Poisson's ratio
+nu = 0.3  # Poisson's ratio
 rho = 2.0e2  # kg/m^3
 
 
@@ -174,11 +172,12 @@ Nlayers = len(θ)
 controlPts = surf.ctrlpts2d[:] # Given in v,u
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts)) #Flipping to u,v
 
+nodeStartTag=1
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
 
-ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
@@ -229,13 +228,11 @@ ops.pattern("Plain", 1, 1)
 print("Loading nodes")
 I      = Lb*(sum(thickness)**3)/12.0;
 moment = (2*np.pi*E1*I)/La; # final bending moment to make the strip a circle
-Pz = moment/I
+Pz = moment/I / 4
 
 deltaL=(1-0.95)*La
-Pz=moment/deltaL/10
+Pz=moment/deltaL/40
 print("Pz: ", Pz)
-
-
 
 followerLoadsPos = [0.0, 0.0, Pz/2] 
 followerLoadsNeg = [0.0, 0.0, -Pz/2]
@@ -315,7 +312,8 @@ for j in range(nSteps):
         surf.set_ctrlpts(controlPts.tolist(), surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
         # Visualize surface
-        surfVisualize(surf, hold=True)
+        if j%6==0 or j==nSteps-1:
+            surfVisualize(surf, hold=True)
         
         # Adding deformation to controlPts
         controlPts = surf.ctrlpts2d[:]

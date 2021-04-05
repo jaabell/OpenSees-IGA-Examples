@@ -167,8 +167,9 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))  # Flipping to u
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
+nodeStartTag=1
 
-ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,

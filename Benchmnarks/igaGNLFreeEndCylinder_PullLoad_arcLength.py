@@ -287,6 +287,7 @@ for point in controlPts:
             point[i][k] /= point[i][3]
 
 nodeStartTag=1
+
 ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
@@ -374,8 +375,9 @@ print("Finished loading nodes")
 
 print("Starting analysis")
 
+
 # Create test
-ops.test("NormDispIncr", 1.0e-5, 200, 1) # Apparently faster
+ops.test("NormDispIncr", 1.0e-5, 30, 1) # Apparently faster
 # ops.test("NormUnbalance", 1.0e-4, 80, 1)
 # ops.test("EnergyIncr", 1.0e-4, 80, 1)
 
@@ -393,8 +395,8 @@ ops.constraints("Plain")
 # ops.algorithm("Linear")
 # ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-# ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
-ops.algorithm("NewtonLineSearch")
+ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
+# ops.algorithm("NewtonLineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")
@@ -405,9 +407,18 @@ ops.algorithm("NewtonLineSearch")
 # defMax = 2.7
 # nSteps = abs(int(defMax / delta))
 
-nSteps = 40
-ops.integrator("LoadControl", 1.0 / nSteps)
-# ops.integrator("DisplacementControl", forcedNode, 2, delta)
+nSteps = 10
+# ops.integrator("LoadControl", 1.0 / nSteps)
+ops.integrator("ArcLength", 10 ,1)
+
+
+
+# # # create integrator
+# pointB = 1
+# delta = -0.2
+# defMax = 4.551
+# nSteps = abs(int(defMax / delta))
+# ops.integrator("DisplacementControl", pointB, 1, delta)
 
 # create analysis object
 ops.analysis("Static")
@@ -465,16 +476,17 @@ for j in range(nSteps):
         surf.set_ctrlpts(controlPts.tolist(),
                          surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
-        data[j + 1, 0] = abs(ops.nodeDisp(forcedNode, 2))
+        data[j + 1, 0] = abs(ops.nodeDisp(forcedNode, 2)) #Point A
         data[j + 1, 1] = ops.getLoadFactor(1)
         data[j + 1, 2] = abs(ops.nodeDisp(1, 1))  # Point B
         data[j + 1, 3] = abs(ops.nodeDisp(133, 1))  # Point C
         # elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
         # print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1) * Pz)
         # print("elasticSolution: ", elasticSolution)
-        print("data[j+1,0]: ", data[j + 1, 0])
-        print("data[j+1,1]: ", data[j + 1, 1])
-        print("4*data[j+1,1]: ", 4 * data[j + 1, 1])
+        print("Load: ",  4*data[j + 1, 1])
+        print("Point A: ", data[j + 1, 0])
+        print("Point B: ", data[j + 1, 2])
+        print("Point C: ", data[j + 1, 3])
 
         # B=ops.printB('-ret')
         # print("B: ", B)
@@ -484,15 +496,15 @@ for j in range(nSteps):
 # % refenrece solution from Sze et al, 2004
 # % Popular benchmark problems for geometric nonlinear analysis of shells
 
-P = Pz/1000 * np.array([0, 0.025 , 0.05  , 0.075 , 0.1   , 0.15  , 0.20  , 0.25  , 0.30  , 0.35  , 0.40  , 0.45  , 0.5   , 0.525 , 0.55  , 0.6   , 0.65  , 0.7   , 0.75  , 0.8   , 0.85  , 0.9   , 0.95  , 1])
-wA =     np.array([0, 0.819      , 1.26  , 1.527 , 1.707 , 1.936 , 2.079 , 2.180 , 2.257 , 2.321 , 2.376 , 2.425 , 2.473 , 2.543 , 2.577 , 2.618 , 2.648 , 2.672 , 2.692 , 2.710 , 2.726 , 2.741 , 2.755 , 2.768])
-uB =     np.array([0, 0.864      , 1.471 , 1.901 , 2.217 , 2.641 , 2.904 , 3.087 , 3.227 , 3.342 , 3.443 , 3.539 , 3.653 , 4.061 , 4.171 , 4.274 , 4.338 , 4.385 , 4.423 , 4.455 , 4.483 , 4.508 , 4.53  , 4.551])
-uC =     np.array([0, 0.872      , 1.493 , 1.946 , 2.293 , 2.792 , 3.106 , 3.310 , 3.452 , 3.556 , 3.632 , 3.688 , 3.718 , 3.580 , 3.518 , 3.452 , 3.410 , 3.378 , 3.353 , 3.332 , 3.313 , 3.297 , 3.283 , 3.269])
+P = Pz/10000 * np.array([0 , 0.025 , 0.05  , 0.075 , 0.1   , 0.15  , 0.20  , 0.25  , 0.30  , 0.35  , 0.40  , 0.45  , 0.5   , 0.525 , 0.55  , 0.6   , 0.65  , 0.7   , 0.75  , 0.8   , 0.85  , 0.9   , 0.95  , 1])
+wA =     np.array([0      , 0.819 , 1.26  , 1.527 , 1.707 , 1.936 , 2.079 , 2.180 , 2.257 , 2.321 , 2.376 , 2.425 , 2.473 , 2.543 , 2.577 , 2.618 , 2.648 , 2.672 , 2.692 , 2.710 , 2.726 , 2.741 , 2.755 , 2.768])
+uB =     np.array([0      , 0.864 , 1.471 , 1.901 , 2.217 , 2.641 , 2.904 , 3.087 , 3.227 , 3.342 , 3.443 , 3.539 , 3.653 , 4.061 , 4.171 , 4.274 , 4.338 , 4.385 , 4.423 , 4.455 , 4.483 , 4.508 , 4.53  , 4.551])
+uC =     np.array([0      , 0.872 , 1.493 , 1.946 , 2.293 , 2.792 , 3.106 , 3.310 , 3.452 , 3.556 , 3.632 , 3.688 , 3.718 , 3.580 , 3.518 , 3.452 , 3.410 , 3.378 , 3.353 , 3.332 , 3.313 , 3.297 , 3.283 , 3.269])
 
 
-plt.plot(data[:, 0], Pz /1000* data[:, 1], 'or')
-plt.plot(data[:, 2], Pz /1000* data[:, 1], 'ob')
-plt.plot(data[:, 3], Pz /1000* data[:, 1], 'og')
+plt.plot(data[:, 0], Pz /10000* data[:, 1], 'or')
+plt.plot(data[:, 2], Pz /10000* data[:, 1], 'ob')
+plt.plot(data[:, 3], Pz /10000* data[:, 1], 'og')
 
 
 plt.plot(wA, P, '-r')

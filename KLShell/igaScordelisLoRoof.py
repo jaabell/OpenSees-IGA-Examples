@@ -1,3 +1,4 @@
+
 #  IGA Scordelis Lo Roof
 import numpy as np
 import opensees as ops
@@ -463,6 +464,7 @@ surf.knotvector_v = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 
 # Visualize surface
 surfVisualize(surf, hold=True)
+# exit()
 
 
 
@@ -509,8 +511,9 @@ for point in controlPts:
         for k in range(3):
             point[i][k] /= point[i][3]
 
+nodeStartTag=1
 
-ops.IGA("Patch", patchTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("Patch", patchTag,nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
