@@ -1731,8 +1731,8 @@ for point in controlPts: #weighting controlPts
 
 
 patchTag = 1
-P = 4
-Q = 4
+P = 5
+Q = 5
 
 
 # Create a NURBS surface instance
@@ -1849,21 +1849,18 @@ nodesNextToAB=nodesOnAB+surf.ctrlpts_size_u
 
 forcedNode = nPoints  # Measure deformation here
 pointB=int(nodesOnDC[0])
-xConsNodes=np.unique(np.concatenate([nodesOnAB,nodesOnAD]))
-yConsNodes=np.unique(np.concatenate([nodesOnAB,nodesOnCB]))
-zConsNodes=np.unique(nodesOnDC)
+xConsNodes=np.concatenate([nodesOnAB,nodesOnAD])
+yConsNodes=np.concatenate([nodesOnAB,nodesOnCB])
+zConsNodes=nodesOnDC
 
 
 for n in ops.getNodeTags():
     n = int(n)
     if n in xConsNodes:
-        # ops.fixX(n)
         ops.fix(n,1,0,0)
-    if n in yConsNodes:
-        # ops.fixY(n)
+    elif n in yConsNodes:
         ops.fix(n,0,1,0)
-    if n in zConsNodes:
-        # ops.fixZ(n)
+    elif n in zConsNodes:
         ops.fix(n,0,0,1)
 
 
@@ -1882,8 +1879,6 @@ for i in range(len(nodesOnCB)):
 for i in range(len(nodesOnAD)):
     ops.equalDOF(int(nodesNextToAD[i]), int(nodesOnAD[i]), 2,3) # restrinjo rotY tomando Z y rotZ tomando Y 
     # ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 1,2,3)
-
-
 
 
 
@@ -1920,7 +1915,7 @@ print("Starting analysis")
 
 
 # Create test
-ops.test("NormDispIncr", 1.0e-4, 50, 1)
+ops.test("NormDispIncr", 1.0e-5, 50, 1)
 # ops.test("NormUnbalance",1e-8,10)
 
 # create algorithm
@@ -1934,12 +1929,11 @@ ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
 # create integrator
 # nSteps=1
 # ops.integrator("LoadControl", 1.0/nSteps)
-# ops.integrator("LoadControl", 1.0)
 
 # create integrator
-delta = -5
+delta = -5.0 #was -5.0
 defMax = 83.102
-nSteps = abs(int(defMax / delta))
+nSteps = abs(int(defMax / delta)) 
 ops.integrator("DisplacementControl", forcedNode, 2, delta)
 
 

@@ -287,6 +287,7 @@ for point in controlPts:
             point[i][k] /= point[i][3]
 
 nodeStartTag=1
+
 ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
@@ -339,9 +340,12 @@ for n in ops.getNodeTags():
 
 for i in range(len(nodesOnAD)):
     ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 1, 2, 3)
+    # ops.equalDOF(int(nodesNextToAD[i]), int(nodesOnAD[i]), 2, 3)
     # ops.equalDOF(int(nodesOnAD[i]), int(nodesNextToAD[i]), 2)
+
     ops.equalDOF(int(nodesOnCB[i]), int(nodesNextToCB[i]), 1, 2, 3)
     # ops.equalDOF(int(nodesOnCB[i]), int(nodesNextToCB[i]), 2)
+
     ops.equalDOF(int(nodesOnDC[i]), int(nodesNextToDC[i]), 1, 2, 3)
     # ops.equalDOF(int(nodesOnDC[i]), int(nodesNextToDC[i]), 3)
 
@@ -375,8 +379,8 @@ print("Finished loading nodes")
 print("Starting analysis")
 
 # Create test
-ops.test("NormDispIncr", 1.0e-5, 200, 1) # Apparently faster
-# ops.test("NormUnbalance", 1.0e-4, 80, 1)
+# ops.test("NormDispIncr", 1.0e-5, 50, 1) # Apparently faster
+ops.test("NormUnbalance", 1.0e-5, 50, 1)
 # ops.test("EnergyIncr", 1.0e-4, 80, 1)
 
 # create SOE
@@ -401,13 +405,13 @@ ops.algorithm("NewtonLineSearch")
 # ops.algorithm("Broyden")
 
 # create integrator
-# delta = 0.1
-# defMax = 2.7
-# nSteps = abs(int(defMax / delta))
+delta = 0.1
+defMax = 2.7
+nSteps = abs(int(defMax / delta))
+ops.integrator("DisplacementControl", forcedNode, 2, delta)
 
-nSteps = 40
-ops.integrator("LoadControl", 1.0 / nSteps)
-# ops.integrator("DisplacementControl", forcedNode, 2, delta)
+# nSteps = 40
+# ops.integrator("LoadControl", 1.0 / nSteps)
 
 # create analysis object
 ops.analysis("Static")

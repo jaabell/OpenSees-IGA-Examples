@@ -150,8 +150,8 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
-
-ops.IGA("Patch", patchTag, P, Q, noPtsX, noPtsY,
+nodeStartTag=1
+ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
         "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
