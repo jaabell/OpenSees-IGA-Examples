@@ -859,9 +859,9 @@ nextToHingedNodes_L = hingedNodes_L - 1
 # print("middleNodes_L: ", middleNodes_L)
 # print("nextToMiddleNodes_L: ", nextToMiddleNodes_L)
 
-fixedNodes = np.concatenate([fixedNodes_L, fixedNodes_R, nextToFixedNodes_L, nextToFixedNodes_R])  # Two rows fixed for clamping
-middleNodes = np.concatenate([middleNodes_R])
-hingedNodes = np.concatenate([hingedNodes_L, hingedNodes_R])
+fixedNodes = np.unique(np.concatenate([fixedNodes_L, fixedNodes_R, nextToFixedNodes_L, nextToFixedNodes_R]) ) # Two rows fixed for clamping
+middleNodes = np.unique(np.concatenate([middleNodes_R]))
+hingedNodes = np.unique(np.concatenate([hingedNodes_L, hingedNodes_R]))
 
 
 for n in ops.getNodeTags():
@@ -973,7 +973,7 @@ print("Starting analysis")
 # Create test
 # ops.test("NormDispIncr", 0.5e-3, 60, 1) # Apparently correct
 # ops.test("RelativeNormDispIncr", 1.0e-3, 50, 1) # Apparently faster
-ops.test("NormUnbalance", 1.0e-3, 50, 1)
+ops.test("NormUnbalance", 1.0e-5, 60, 1)
 # ops.test("EnergyIncr", 1.0e-2, 50, 1)
 # ops.test("RelativeEnergyIncr", 1.0e-3, 50, 1)
 
@@ -997,8 +997,8 @@ ops.constraints("Plain")
 # ops.algorithm("SecantNewton")
 # ops.algorithm("NewtonLineSearch", 'type', 'Secant')
 # ops.algorithm("NewtonLineSearch", 'type', 'RegulaFalsi')
-# ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
-ops.algorithm("NewtonLineSearch")
+ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
+# ops.algorithm("NewtonLineSearch")
 # ops.algorithm("ModifiedNewton")
 # ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")

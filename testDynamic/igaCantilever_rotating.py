@@ -114,9 +114,9 @@ ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
 deg2rad = pi / 180
 
 
-matTags = [3]
-thickness = [t]
-θ = [0 * deg2rad]
+matTags = [3,4]
+thickness = [t/2, t/2]
+θ = [0 * deg2rad] * 2
 g = 9.807
 
 I = (Lb*(sum(thickness)**3))/12.0
@@ -230,7 +230,7 @@ ops.printModel()
 # print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
 
-from matplotlib.pylab import *
+# from matplotlib.pylab import *
 
 # plot(t,dX_0)
 # plot(t,dX_1)

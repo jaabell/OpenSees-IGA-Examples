@@ -1839,6 +1839,9 @@ nodesOnAD = np.arange(surf.ctrlpts_size_u, nPoints + 1, surf.ctrlpts_size_u)
 nodesOnAB = np.arange(1, surf.ctrlpts_size_u + 1)
 nodesOnDC = np.arange(nPoints - surf.ctrlpts_size_u + 1, nPoints + 1)
 
+
+
+
 nodesNextToAD = nodesOnAD - 1
 nodesNextToDC = nodesOnDC - surf.ctrlpts_size_u
 nodesNextToCB = nodesOnCB + 1
@@ -1849,18 +1852,18 @@ nodesNextToAB=nodesOnAB+surf.ctrlpts_size_u
 
 forcedNode = nPoints  # Measure deformation here
 pointB=int(nodesOnDC[0])
-xConsNodes=np.concatenate([nodesOnAB,nodesOnAD])
-yConsNodes=np.concatenate([nodesOnAB,nodesOnCB])
-zConsNodes=nodesOnDC
+xConsNodes=np.unique(np.concatenate([nodesOnAB,nodesOnAD]))
+yConsNodes=np.unique(np.concatenate([nodesOnAB,nodesOnCB]))
+zConsNodes=np.unique(nodesOnDC)
 
 
 for n in ops.getNodeTags():
     n = int(n)
     if n in xConsNodes:
         ops.fix(n,1,0,0)
-    elif n in yConsNodes:
+    if n in yConsNodes:
         ops.fix(n,0,1,0)
-    elif n in zConsNodes:
+    if n in zConsNodes:
         ops.fix(n,0,0,1)
 
 
@@ -1896,7 +1899,7 @@ ops.pattern("Plain", 1, 1)
 
 print("Loading nodes")
 
-F = -12000 / 4.0 
+F = -12000.0 / 4.0 
 ops.load(forcedNode, 0, F, 0)
 
 print("Finished loading nodes")
@@ -1931,9 +1934,9 @@ ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
 # ops.integrator("LoadControl", 1.0/nSteps)
 
 # create integrator
-delta = -5.0 #was -5.0
+delta = -5 #was -5.0
 defMax = 83.102
-nSteps = abs(int(defMax / delta)) 
+nSteps = abs(int(defMax / delta)) + 1
 ops.integrator("DisplacementControl", forcedNode, 2, delta)
 
 
@@ -1994,12 +1997,12 @@ for j in range(nSteps):
                          surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
         data[j + 1, 0] = ops.nodeDisp(forcedNode, 2) #Point A
-        data[j + 1, 1] = ops.getLoadFactor(1)
+        data[j + 1, 1] = 1.2*ops.getLoadFactor(1)
         data[j + 1, 2] = ops.nodeDisp(pointB, 1)  # Point B
         # elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
         # print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1) * Pz)
         # print("elasticSolution: ", elasticSolution)
-        print("Load: ",  1.2*data[j + 1, 1])
+        print("Load: ",  data[j + 1, 1])
         print("Point A: ", -1/10*data[j + 1, 0])
         print("Point B: ", 1/10*data[j + 1, 2])
 
@@ -2101,13 +2104,13 @@ evalcolor = ["red", "green", "green", "green"]
 cpcolor=["red","black", "black", "black"]
 container.render(evalcolor=evalcolor, cpcolor=cpcolor)
 
-P=np.array([0,0.05,0.075,0.1,0.125,0.15,0.175,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1])
+P=1.2*np.array([0,0.05,0.075,0.1,0.125,0.15,0.175,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1])
 wA=1/10*np.array([0,9.561,15.648,23.164,29.375,36.208,51.499,56.373,61.877,65.498,68.229,70.424,72.204,73.79,75.139,76.331,77.472,78.451,79.339,80.218,81.045,81.766,82.435,83.102])
 uB=1/10*np.array([0,-0.233,-0.922,-2.391,-3.872,-2.154,6.792,10.448,14.905,17.979,20.365,22.321,23.916,25.381,26.631,27.735,28.843,29.772,30.604,31.471,32.299,32.989,33.619,34.272])
 
 wA_model=1/10*abs(data[:, 0])
 uB_model=1/10*data[:, 2]
-P_model=1.2*abs(data[:, 1])
+P_model=data[:, 1]
 
 
 plt.plot(wA_model, P_model, 'or', mfc='none',label="-wA")
