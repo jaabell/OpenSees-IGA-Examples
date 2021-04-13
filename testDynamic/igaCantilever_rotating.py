@@ -152,7 +152,7 @@ for n in ops.getNodeTags():
     else:
         ops.fix(n, 0, 1, 0)
 
-nSpins = 3
+nSpins = 10
 ω = 5  # rad/s
 tMax = (nSpins*2*pi/ω)  # 5 seconds
 deltaT = 0.05/4
@@ -255,7 +255,7 @@ ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
 
 
 # Analysis
-ops.test("EnergyIncr", 1.0e-8, 80, 0)
+ops.test("EnergyIncr", 1.0e-7, 100, 0)
 # ops.test("NormUnbalance", 1.0e-10, 90, 0)
 # ops.test("NormDispIncr", 1.0e-8, 50, 0)
 
@@ -314,7 +314,7 @@ for j in range(nSteps):
                          surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
         # Visualize surface
-        surfVisualize(surf, hold=False)
+        # surfVisualize(surf, hold=False)
 
 print(ops.nodeDisp(8, 3))
 
