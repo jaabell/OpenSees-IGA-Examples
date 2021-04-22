@@ -10,9 +10,9 @@ from geomdl import NURBS, compatibility, operations, knotvector
 from surfVisualize import *
 
 
-La = 6    #
-Lb = 0.5
-mm = 1.0 / 1000.  # m
+La = 2.26    #
+Lb = 0.15
+
 
 d = 0.2  # radius
 
@@ -21,30 +21,30 @@ ops.model('basic', '-ndm', 3, '-ndf', 3)
 
 # These are given in v,u
 controlPts = np.array([
-    [0.00000 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [0.00000 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [0.31250 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [0.31250 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [0.93750 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [0.93750 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [1.87500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [1.87500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [3.12500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [3.12500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [4.37500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [4.37500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [5.62500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [5.62500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [6.87500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [6.87500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [8.12500 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [8.12500 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [9.06250 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [9.06250 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [9.68750 * La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [9.68750 * La/10 + d, 1.0 * Lb, 0.0, 1.0],
-    [10.00000*La/10 + d, 0.0 * Lb, 0.0, 1.0],
-    [10.00000*La/10 + d, 1.0 * Lb, 0.0, 1.0]
+    [0.00000 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [0.00000 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [0.31250 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [0.31250 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [0.93750 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [0.93750 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [1.87500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [1.87500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [3.12500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [3.12500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [4.37500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [4.37500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [5.62500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [5.62500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [6.87500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [6.87500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [8.12500 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [8.12500 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [9.06250 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [9.06250 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [9.68750 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [9.68750 / 10 * La + d, 1.0 * Lb, 0.0, 1.0],
+    [10.00000 / 10 * La + d, 0.0 * Lb, 0.0, 1.0],
+    [10.00000 / 10 * La + d, 1.0 * Lb, 0.0, 1.0]
 ])
 
 # controlPts[0][0]*=0
@@ -59,7 +59,7 @@ controlPts = np.array([
 
 patchTag = 1
 nodeStartTag = 1
-P = 5
+P = 3
 Q = 1
 
 # Create a BSpline surface instance
@@ -86,48 +86,45 @@ noPtsY = surf.ctrlpts_size_v
 # Visualize surface
 surfVisualize(surf, hold=True)
 
+factor = 1
+E1 = factor*56101.68868e6  # Young's modulus N/m^2
+E2 = factor*28050.680868e6
+nu12 = 0.055  # Poisson's ratio
+nu21 = E2*nu12/E1  # Poisson's ratio
+G12 = factor*4488.174327e6  # Shear modulus
+rho = 3181.27  # *9.807 # kg/m^3
 
-# nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
-# $poisson_probeta
-GPa = 1e9
-E1 = 10*GPa  # Young's modulus N/m^2
-E2 = E1
-nu = 0.0  # Poisson's ratio
-rho = 8e3  # *9.807 # kg/m^3
-t = 0.5
+Xt = 70e6
+Xc = 70e6
+Yt = 70e6
+Yc = 70e6
+S = 70e6
+c1 = 4.0e-6
+c2 = 30
+c3 = 2.0e-6
+c4 = 0.8
+c5 = 80
+c6 = 0
+c7 = 0
+c8 = 0
+c9 = 0
+b = 1
 
-
-tagNDmat1 = 1
-ops.nDMaterial("ElasticIsotropic", tagNDmat1, E1, nu, rho)
-
-tagNDmat2 = 2
-ops.nDMaterial("ElasticIsotropic", tagNDmat2, E2, nu, rho)
-
-
-# nDMaterial PlateFiber $nDtag_platefiber $nDtag_elastic
-tagPlaneStress1 = 3
-ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
-
-tagPlaneStress2 = 4
-ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
-
+tagPlaneStress = 1
+vonPaepeParams = [E1, E2, nu12, nu21, G12, rho, Xt, Xc,
+                  Yt, Yc, S, c1, c2, c3, c4, c5, c6, c7, c8, c9, b]
+ops.nDMaterial("VonPapaDamage", tagPlaneStress, *vonPaepeParams)
+print("Created Von-Paepe material")
 deg2rad = pi / 180
 
 
-matTags = [3,4]
-thickness = [t/2, t/2]
-θ = [0 * deg2rad] * 2
-g = 9.807
-
-I = (Lb*(sum(thickness)**3))/12.0
-W = rho*g*(sum(thickness)*Lb)
-elasticSolution = abs(W*La**4/(8*E1*I))
-
-
-gFact = [0.0, 0.0, 0*g]
-
-
+thickness = 2*1e0*np.array([2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4,
+                            2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4, 2.43e-4])
+θ = 1*deg2rad*np.array([45.0, -45.0, 0.0, 90.0, 0.0, 90.0, 0.0, 90.0, 45.0, -45.0,
+                        0.0, 90.0, 0.0, 90.0, 45.0, -45.0, 45.0, -45.0, 45.0, -45.0, 45.0, -45.0])
 Nlayers = len(θ)
+matTags = [1]*Nlayers
+
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
@@ -137,11 +134,19 @@ ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
-        "-gFact", *gFact,
         "-theta", *θ,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
 
+
+
+
+
+# ops.setParameter('-val', 0, "-ele", 1, "resetMaxStress")
+
+# ops.updateParameter()
+
+print("Succesfully created model")
 # exit()
 
 # Creating constraints
@@ -152,16 +157,16 @@ for n in ops.getNodeTags():
     else:
         ops.fix(n, 0, 1, 0)
 
-nSpins = 5
-ω = 3  # rad/s
+nSpins = 3
+ω = 1.5  # rad/s
 tMax = (nSpins*2*pi/ω)  # 5 seconds
-deltaT = 0.05/5
+deltaT = 1e-3
 t = np.arange(0, tMax+deltaT, deltaT)
 
 
 # First row parametrization
 
-dX_0 = d*np.cos(ω*t) 
+dX_0 = d*np.cos(ω*t)
 dX_0 -= dX_0[0]
 dZ_0 = d*np.sin(ω*t)
 dZ_0 -= dZ_0[0]
@@ -170,10 +175,9 @@ dZ_0 -= dZ_0[0]
 # Second row parametrization
 d_1 = d + 0.03125*La  # distance to middle
 dX_1 = d_1*np.cos(ω*t)
-dX_1 -= dX_1[0] 
+dX_1 -= dX_1[0]
 dZ_1 = d_1*np.sin(ω*t)
-dZ_1 -= dZ_1[0] 
-
+dZ_1 -= dZ_1[0]
 
 
 # create TimeSeries for first row
@@ -249,14 +253,16 @@ ops.timeSeries("Constant", 5)
 
 # create a plain load pattern
 ops.pattern("Plain", 5, 5)
+
+g = 9.807
 weight = [0.0, 0.0, -g]
 ops.eleLoad("-ele", 1, "-type", "-SelfWeight", *weight)
 
 
 # Analysis
 ops.test("EnergyIncr", 1.0e-7, 100, 0)
-# ops.test("NormUnbalance", 1.0e-10, 90, 0)
-# ops.test("NormDispIncr", 1.0e-8, 50, 0)
+# ops.test("NormUnbalance", 1.0e-7, 100, 0)
+# ops.test("NormDispIncr", 1.0e-7, 100, 0)
 
 ops.algorithm("Newton")
 # ops.algorithm("Linear")
@@ -284,8 +290,10 @@ for j in range(nSteps):
     print(j/nSteps*100, '%')
     if (ops.analyze(1, deltaT) != 0):
         exit()
+    nCycles = 10
+    ops.setParameter('-val', int(nCycles), "-ele", 1, "advanceDamageState")
 
-    node=1
+    node = 1
     print(np.array(ops.nodeCoord(1))+np.array(ops.nodeDisp(1)))
 
     if j % 10 == 0:
