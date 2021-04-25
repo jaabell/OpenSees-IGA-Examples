@@ -750,7 +750,7 @@ tagPlaneStress3 = 3
 ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress3, E1, E2, nu12, nu21, G12, rho)
 
 tagPlaneStress4 = 4
-ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress4, E1 * 1e3, E1 * 1e3, 0, 0, 0, rho)
+ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress4, E1 * 1e4, E1 * 1e4, 0, 0, 0, rho)
 
 deg2rad = pi / 180
 
