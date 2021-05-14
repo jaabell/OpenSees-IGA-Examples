@@ -105,7 +105,7 @@ E1 = 1.2e6  # Young's modulus N/m^2
 E2 = E1
 nu12 = 0.0  # Poisson's ratio
 nu21 = 0.0  # Poisson's ratio
-G12 = E1/(2*(1-nu21)) # Shear modulus
+G12 = E1/(2*(1+nu21)) # Shear modulus
 rho = 8.0e3  # *9.807 # kg/m^3
 t = 100. * mm
 

@@ -285,7 +285,7 @@ ops.system("UmfPack")
 ops.analysis("Transient")
 
 # Create recorder
-ops.recorder('Node', '-file', 'Node.out', '-closeOnWrite','-time', '-node', *[12], '-dof', *[3], *['disp'])
+ops.recorder('Node', '-file', 'Node2.out', '-closeOnWrite','-time', '-node', *[12], '-dof', *[3], *['disp'])
 # ops.recorder('Node', '-file', 'Node.out', '-time', '-node', *[12], '-dof', *[3], *['disp'])
 
 

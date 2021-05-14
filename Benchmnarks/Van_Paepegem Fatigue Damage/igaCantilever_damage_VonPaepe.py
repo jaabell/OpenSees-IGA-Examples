@@ -12,7 +12,8 @@ from surfVisualize import *
 
 
 mm = 1.0/1000
-La = 54 * mm    #
+La = 160 * mm    #
+# La = 54 * mm    #
 Lb = 30 * mm
 
 # These are given in v,u
@@ -46,7 +47,7 @@ controlPts = np.array([
 
 patchTag = 1
 nodeStartTag = 1
-P = 4
+P = 5
 Q = 1
 
 # Create a BSpline surface instance
@@ -97,7 +98,7 @@ Yt   = 390.7*MPa
 Yc   = 345.1*MPa
 S    = 100.6*MPa
 c1   = 0.003
-c2   = 30
+c2   = 30.0
 c3   = 3.5e-6
 c4   = 0.85
 c5   = 93
@@ -105,7 +106,7 @@ c6   = 0
 c7   = 0
 c8   = 0
 c9   = 0.6
-b    = 1
+b    = 1.0
 
 tagPlaneStress = 1
 vonPaepeParams = [E1, E2, nu12, nu21, G12, rho, Xt, Xc,
@@ -149,16 +150,18 @@ ops.equalDOF(24, 23, 3)
 for n in ops.getNodeTags():
     if n in [1, 2, 13, 14]:
         ops.fix(n, 1, 1, 1)
+
     # else:
     #     ops.fix(n, 0, 1, 0)
 
 
 ω = 2*pi  # rad/s
 tMax = 1  # 5 seconds
-deltaT = 5e-2
+deltaT = 2.5e-2
 t = np.arange(0, tMax+deltaT, deltaT)
 
 uMax = 30.4*mm/2
+# uMax = 1.2*mm/2
 uTip = np.sin(ω*t-pi/2)*uMax+uMax
 
 plot(t, 1000*uTip, '-o')
@@ -201,8 +204,8 @@ ops.printModel()
 
 # Analysis
 # ops.test("EnergyIncr", 1.0e-7, 100, 0)
-# ops.test("NormUnbalance", 1.0e-7, 100, 0)
-ops.test("NormDispIncr", 1.0e-7, 100, 0)
+ops.test("NormUnbalance", 1.0e-7, 100, 0)
+# ops.test("NormDispIncr", 1.0e-7, 100, 0)
 
 ops.system("UmfPack")
 
@@ -214,10 +217,10 @@ ops.numberer("RCM")
 ops.constraints("Plain")
 
 # Creating algorithm
-ops.algorithm("Newton")
+# ops.algorithm("Newton")
 # ops.algorithm("Linear")
 # ops.algorithm("NewtonLineSearch")
-# ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
+ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
 
 
 # Create recorder
@@ -230,8 +233,10 @@ def computeCycle():
     for j in range(1, len(t)):
         delta = uTip[j]-D0
         # print("delta = ", delta)
+
         # Creating integrator
-        ops.integrator("DisplacementControl", 12, 3, delta)  # 25mm
+        ops.integrator("DisplacementControl", 12, 3, delta)  
+
         # Create analysis type
         ops.analysis("Static")
 
@@ -245,22 +250,64 @@ def computeCycle():
         D0=uTip[j]
     return loadFactor_max
 
+data=np.array([
+    [0                  , 106.49681528662421],
+    [1186.9436201780336 , 104.39490445859873],
+    [2373.887240356067  , 102.05944798301488],
+    [3560.830860534101  , 100.19108280254778],
+    [9495.548961424298  , 98.32271762208069],
+    [16617.210682492558 , 97.38853503184714],
+    [27299.703264094976 , 96.4543524416136],
+    [46290.80118694363  , 95.75371549893845],
+    [68842.72997032641  , 95.28662420382166],
+    [89020.7715133531   , 95.05307855626327],
+    [108011.86943620178 , 95.05307855626327],
+    [127002.96735905044 , 94.5859872611465],
+    [148367.95252225522 , 94.5859872611465],
+    [172106.824925816   , 94.11889596602973],
+    [205341.24629080118 , 93.65180467091295],
+    [231454.0059347181  , 93.41825902335458],
+    [263501.4836795252  , 93.18471337579618],
+    [316913.94658753707 , 92.7176220806794],
+    [351335.3115727003  , 92.25053078556265],
+    [376261.1275964392  , 91.54989384288749],
+    [394065.28189910983 , 91.31634819532908],
+    [420178.0415430267  , 90.84925690021232],
+    [468842.7299703264  , 89.91507430997876],
+    [499703.2640949555  , 89.21443736730362],
+    [530563.7982195846  , 88.51380042462847],
+    [562611.2759643918  , 87.57961783439491],
+    [594658.7537091989  , 86.64543524416136],
+    [626706.231454006   , 84.77707006369428],
+    [658753.7091988132  , 82.90870488322719],
+    [690801.1869436203  , 81.50743099787687],
+    [721661.7210682493  , 78.47133757961785],
+    [752522.2551928784  , 74.03397027600849],
+    [779821.9584569733  , 68.89596602972401],
+    [798813.0563798221  , 65.3927813163482]
+    ])
+
+cycles_data=data[:,0]
+force_data=data[:,1]
+steps=np.diff(cycles_data)
+midSteps=np.diff(np.linspace(1,1186,50))
+steps=np.sort(np.concatenate([[1]*10,[10]*10,[100]*10,[200]*10,[500]*10,[1000]*10,midSteps,steps,[10000]*100]))
+
 # Computing loadFactors
-nSteps=100
+nSteps=len(steps)
 loadFactors=np.zeros(nSteps,dtype=np.float64)
 cycles=np.zeros(nSteps)
 for i in range(nSteps):
-    print("Step ",i)
+    print("Step = ",i, " of ",nSteps)
     loadFactor_max=computeCycle()
     print('loadFactor = ',loadFactor_max)
     loadFactors[i]=loadFactor_max
-
+    nCycles = steps[i]
+    ops.setParameter('-val', int(nCycles), "-ele", 1, "advanceDamageState")
+    ops.setParameter('-val', 0, "-ele", 1, "resetMaxStress")
     if i==0:
-        cycles[i]=1
+        cycles[i]=nCycles
     else:
-        nCycles = 1e7
-        ops.setParameter('-val', int(nCycles), "-ele", 1, "advanceDamageState")
-        ops.setParameter('-val', 0, "-ele", 1, "resetMaxStress")
         cycles[i]=cycles[i-1]+nCycles
 
 import matplotlib
@@ -269,8 +316,12 @@ matplotlib.rc('axes.formatter', useoffset=False)
 print(loadFactors)
 
 # plt.rcParams['axes.formatter.useoffset'] = False
-plot(cycles,loadFactors,'-o')
+plot(cycles,loadFactors,'or')
+plot(cycles_data,force_data,'-b')
 
 # ticklabel_format(useOffset=False)
 show()
 print("Done")
+
+
+
