@@ -589,8 +589,7 @@ for i in range(nSteps):
     loadFactors[i] = loadFactor_max
     nCycles = steps[i]
 
-    PARAPIPE
-    NJUMPVECTOR[eleNumber, gp, capa] = ops.eleResponse(eleNumber, "material_and_layer_number", gp, capa, "NJUMP")
+
 
     print("Advancing damage state in ", nCycles, "cycles")
     if nCycles>=100:

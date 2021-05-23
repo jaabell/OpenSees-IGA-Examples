@@ -146,11 +146,22 @@ gFact = [0.0, 0.0, 0.0]
 Nlayers = len(θ)
 
 controlPts = surf.ctrlpts2d[:]
+
+print("controlPts =",controlPts)
+
 controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
+
+print("controlPts =",controlPts)
 
 print("controlPts.tolist(): ", controlPts.tolist())
 
+print(uKnot)
+print(vKnot)
+
+exit()
+
 nodeStartTag=1
+
 ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
         "-nonLinearGeometry", 0,
@@ -221,6 +232,12 @@ for j in range(nSteps):
     ops.analyze(1)
 
 print("Finished analysis")
+
+
+
+
+
+
 
 controlPts = surf.ctrlpts2d[:]
 controlPts = compatibility.flip_ctrlpts2d(controlPts)
