@@ -1,6 +1,10 @@
 #  IGA CANTILEVER PLATE UNDER SELF WEIGHT. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
 
+<<<<<<< HEAD
 from surfVisualize import *
+=======
+
+>>>>>>> ae3d69df1aa8f0e79f49d9ea0110a975137bc87e
 import numpy as np
 import opensees as ops
 from math import *
@@ -109,6 +113,14 @@ print("\n\n\nPRINTING DOMAIN-----------------------")
 ops.printModel()
 print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
+# STKO Recorder
+
+ops.recorder("mpco","iga_cantilever","-N","displacement","-E","stresses","-E","strains")
+
+print(f"DONE! ")
+
+# exit(0)
+
 # ------------------------------
 # Start of analysis generation
 # ------------------------------
@@ -140,7 +152,8 @@ ops.constraints("Plain")
 ops.integrator("LoadControl", 1.0)
 
 # create algorithm
-ops.algorithm("Linear")
+ops.test("NormDispIncr", 1.0e-8, 50, 2)
+ops.algorithm("Newton")
 
 # create analysis object
 ops.analysis("Static")
@@ -163,4 +176,6 @@ elasticSolution = W*La**4/(8*E1*I)
 print("elasticSolution: ", 1000*elasticSolution, "mm\n")
 
 print("Done!")
+
+ops.remove("recorders")
 
