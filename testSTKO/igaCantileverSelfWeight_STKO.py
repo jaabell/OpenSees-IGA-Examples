@@ -1,10 +1,5 @@
 #  IGA CANTILEVER PLATE UNDER SELF WEIGHT. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
 
-<<<<<<< HEAD
-from surfVisualize import *
-=======
-
->>>>>>> ae3d69df1aa8f0e79f49d9ea0110a975137bc87e
 import numpy as np
 import opensees as ops
 from math import *
