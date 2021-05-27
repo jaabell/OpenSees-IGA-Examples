@@ -654,10 +654,13 @@ while (cycle < 11e5):
             print("int(bins[index_njump_perc]) = ", int(bins[index_njump_perc]))
             break
 
-    # frequency_inter=interp1d(cumulativeFreq[:3],bins[:3])
+    print('bins = ',bins)
 
     nCycles = int(bins[index_njump_perc])
-    # nCycles = frequency_inter(NJUMP_perc)
+
+    frequency_inter=interp1d(cumulativeFreq,bins)
+    nCycles = frequency_inter(NJUMP_perc)
+    print('frequency_inter(NJUMP_perc) = ',frequency_inter(NJUMP_perc))
 
     if nCycles == 0 :
         print("nCycles = 0 ")
@@ -672,7 +675,8 @@ while (cycle < 11e5):
 
     plot(bins,cumulativeFreq)
     # plot(frequency_inter(cumulativeFreq),cumulativeFreq, '--')
-    plot(nCycles,NJUMP_perc,'or')
+    # plot(nCycles,NJUMP_perc,'or')
+    plot(nCycles,NJUMP_perc,'ob')
 
     # show()
     savefig("{}.png".format(i))

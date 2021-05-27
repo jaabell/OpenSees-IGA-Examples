@@ -1,6 +1,10 @@
 #  IGA CANTILEVER PLATE UNDER SELF WEIGHT. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
 
+<<<<<<< HEAD
+from surfVisualize import *
+=======
 
+>>>>>>> ae3d69df1aa8f0e79f49d9ea0110a975137bc87e
 import numpy as np
 import opensees as ops
 from math import *
@@ -29,7 +33,7 @@ controlPts = np.array([
 ])
 
 
-# MAterial parameters
+# Material parameters
 E1 = 2.1e11  # Young's modulus N/m^2
 E2 = E1
 nu = 0  # Poisson's ratio
@@ -94,6 +98,7 @@ ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-theta", *θ,
         "-thickness", *thickness,
         "-uKnot", *uKnot, "-vKnot", *vKnot, "-controlPts", *controlPts.flatten())
+
 
 
 # Boundary conditions, fixing first two rows for "clamping" condition, fixing "y" displacement for the rest
