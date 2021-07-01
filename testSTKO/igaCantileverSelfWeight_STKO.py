@@ -36,19 +36,54 @@ rho = 1.0e4  # kg/m^3
 
 
 # Creating the necessary materials
-tagNDmat1 = 1
+tagNDmat1 = 10
 ops.nDMaterial("ElasticIsotropic", tagNDmat1, E1, nu, rho)
 
-tagNDmat2 = 2
+tagNDmat2 = 20
 ops.nDMaterial("ElasticIsotropic", tagNDmat2, E2, nu, rho)
 
 
-# Creatring the plane stress used for the element formulation
+# # Creatring the plane stress used for the element formulation
+# tagPlaneStress1 = 3
+# ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
+
+# tagPlaneStress2 = 4
+# ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
+
+# Material parameters
+MPa = 1e6
+E1 = 2.1e11  # Young's modulus N/m^2
+E2 = E1
+nu12 = 0  # Poisson's ratio
+nu21 = 0
+G12 = E1/(2*(1+nu12))
+rho = 1.0e4  # kg/m^3
+
+Xt = 350.0*MPa
+Xc = 350.0*MPa
+Yt = 300.0*MPa
+Yc = 300.0*MPa
+S = 90.0*MPa
+c1 = 4.0e-6
+c2 = 30.0
+c3 = 2.0e-6
+c4 = 0.8
+c5 = 80.0
+c6 = 0.0
+c7 = 0.0
+c8 = 0.0
+c9 = 0.0
+b = 1.0
+
 tagPlaneStress1 = 3
-ops.nDMaterial("PlaneStress", tagPlaneStress1, tagNDmat1)
+vonPaepeParams = [E1, E2, nu12, nu21, G12, rho, 
+            Xt, Xc, Yt, Yc, S, c1, c2, c3, c4, c5, c6, c7, c8, c9, b]
+ops.nDMaterial("VonPapaDamage", tagPlaneStress1, *vonPaepeParams)
 
 tagPlaneStress2 = 4
-ops.nDMaterial("PlaneStress", tagPlaneStress2, tagNDmat2)
+vonPaepeParams = [E1, E2, nu12, nu21, G12, rho, 
+            Xt, Xc, Yt, Yc, S, c1, c2, c3, c4, c5, c6, c7, c8, c9, b]
+ops.nDMaterial("VonPapaDamage", tagPlaneStress2, *vonPaepeParams)
 
 
 deg2rad = pi / 180  # for conversion from radian to degrees
@@ -83,6 +118,11 @@ patchTag = 1
 # The tag of the first node/control point in the patch (in case of multiPatches, have to update this with the last added node)
 nodeStartTag = 1
 
+# secType = 'Elastic'
+# secTag = 1
+# secArgs = [E1, 10, 100]
+# ops.section('PlateFiber', 1, 10, 0.1)
+
 # ops.IGA call to create the patch (super element)
 ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell", # Element type to use for the patch (used when creating a bending strip)
@@ -110,7 +150,8 @@ print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 
 # STKO Recorder
 
-ops.recorder("mpco","iga_cantilever","-N","displacement","-E","stresses","-E","strains")
+ops.recorder("Element", "-xml", "fiberstuff.xml","-time","-ele",2,"material","1","fiber","0","stress")
+ops.recorder("mpco","iga_cantilever","-N","displacement","-E","material")
 
 print(f"DONE! ")
 
@@ -168,9 +209,11 @@ I = (Lb*(sum(thickness)**3))/12.0
 W = rho*weight[2]*(sum(thickness)*Lb)
 elasticSolution = W*La**4/(8*E1*I)
 
+ops.record()
+
 print("elasticSolution: ", 1000*elasticSolution, "mm\n")
 
-print("Done!")
+print("Done analysis!")
 
 ops.remove("recorders")
 
