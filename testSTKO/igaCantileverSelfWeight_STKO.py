@@ -151,7 +151,12 @@ print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 # STKO Recorder
 
 ops.recorder("Element", "-xml", "fiberstuff.xml","-time","-ele",2,"material","1","fiber","0","stress")
-ops.recorder("mpco","iga_cantilever","-N","displacement","-E","material")
+ops.recorder("mpco","iga_cantilever",
+    "-N","displacement",
+    "-E","section.fiber.stress",
+    "-E","section.fiber.strain",
+    "-E","section.fiber.damagestate",
+    )
 
 print(f"DONE! ")
 
