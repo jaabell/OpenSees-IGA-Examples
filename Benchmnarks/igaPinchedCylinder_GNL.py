@@ -1796,7 +1796,7 @@ for dim in controlPts: # Unweighting control pts
 
 nodeStartTag=1
 
-ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("SurfacePatch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
@@ -1934,10 +1934,12 @@ ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
 # ops.integrator("LoadControl", 1.0/nSteps)
 
 # create integrator
-delta = -5 #was -5.0
+delta = -4.6166/2.0 #was -5.0
 defMax = 83.102
-nSteps = abs(int(defMax / delta)) + 1
+nSteps = abs(int(defMax / delta))
 ops.integrator("DisplacementControl", forcedNode, 2, delta)
+
+
 
 
 # create analysis object
@@ -2082,9 +2084,63 @@ ctrlpts_surfSym_02.reverse()  # Flipping
 ctrlpts_surfSym_02 = (np.array(ctrlpts_surfSym_02).reshape(surfSym_02.ctrlpts_size_u * surfSym_02.ctrlpts_size_v, 4))
 surfSym_02.set_ctrlpts(ctrlpts_surfSym_02.tolist(), surfSym_02.ctrlpts_size_u, surfSym_02.ctrlpts_size_v)
 
-# Creating container for multipatches
 
-surfList = [surf, surfSym, surfSym_01, surfSym_02]
+# Symmetry along y axis
+bbox = np.array(surf.bbox)
+midPoint = (bbox[1] - bbox[0]) / 2
+surf_down = operations.rotate(surf, 0, axis=1, inplace=False)
+ctrlpts_surf_down = surf_down.ctrlpts2d[:]
+for dim in ctrlpts_surf_down:
+    for point in dim:
+        point[1] *= -1  # Symmetry along x axis
+
+ctrlpts_surf_down.reverse()  # Flipping
+ctrlpts_surf_down = (np.array(ctrlpts_surf_down).reshape(surf_down.ctrlpts_size_u * surf_down.ctrlpts_size_v, 4))
+surf_down.set_ctrlpts(ctrlpts_surf_down.tolist(), surf_down.ctrlpts_size_u, surf_down.ctrlpts_size_v)
+bbox = np.array(surf_down.bbox)
+midPoint = (bbox[1] - bbox[0]) / 2
+
+
+surfSym_down = operations.rotate(surf_down, 0, axis=1, inplace=False)
+ctrlpts_surfSym_down = surfSym_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_down:
+    for point in dim:
+        point[0] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_down.reverse()  # Flipping
+ctrlpts_surfSym_down = (np.array(ctrlpts_surfSym_down).reshape(surfSym_down.ctrlpts_size_u * surfSym_down.ctrlpts_size_v, 4))
+surfSym_down.set_ctrlpts(ctrlpts_surfSym_down.tolist(), surfSym_down.ctrlpts_size_u, surfSym_down.ctrlpts_size_v)
+
+
+
+surfSym_01_down=operations.translate(surf_down, [0,0,-2*bbox[1][2]], inplace=False)
+ctrlpts_surfSym_01_down = surfSym_01_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_01_down:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_01_down.reverse()  # Flipping
+ctrlpts_surfSym_01_down = (np.array(ctrlpts_surfSym_01_down).reshape(surfSym_01_down.ctrlpts_size_u * surfSym_01_down.ctrlpts_size_v, 4))
+surfSym_01_down.set_ctrlpts(ctrlpts_surfSym_01_down.tolist(), surfSym_01_down.ctrlpts_size_u, surfSym_01_down.ctrlpts_size_v)
+
+surfSym_02_down=operations.translate(surfSym_down, [0,0,-2*bbox[1][2]], inplace=False)
+ctrlpts_surfSym_02_down = surfSym_02_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_02_down:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_02_down.reverse()  # Flipping
+ctrlpts_surfSym_02_down = (np.array(ctrlpts_surfSym_02_down).reshape(surfSym_02_down.ctrlpts_size_u * surfSym_02_down.ctrlpts_size_v, 4))
+surfSym_02_down.set_ctrlpts(ctrlpts_surfSym_02_down.tolist(), surfSym_02_down.ctrlpts_size_u, surfSym_02_down.ctrlpts_size_v)
+
+
+
+
+# Creating container for multipatches
+surfList = [surf, surfSym, surfSym_01, surfSym_02, surf_down, surfSym_down, surfSym_01_down, surfSym_02_down]
+
+
+
 
 
 container = multi.SurfaceContainer(surfList)
@@ -2100,8 +2156,8 @@ container.vis = VisVTK.VisSurface(ctrlpts=False, legend=False, line_width=1, tri
 # container.vis.ctrlpts_offset=0.1
 
 # Render the surface
-evalcolor = ["red", "green", "green", "green"]
-cpcolor=["red","black", "black", "black"]
+evalcolor = ["red", "green", "green", "green", "green", "green", "green", "green"]
+cpcolor=["red","black", "black", "black","black","black","black","black"]
 container.render(evalcolor=evalcolor, cpcolor=cpcolor)
 
 P=1.2*np.array([0,0.05,0.075,0.1,0.125,0.15,0.175,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1])

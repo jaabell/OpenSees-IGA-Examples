@@ -19,7 +19,7 @@ from scipy.sparse.linalg import eigsh
 
 from fileGetter import surfFromFile, generateKnotVector
 
-surf=surfFromFile("coarse_1.dat",deg_elevate=True)
+surf=surfFromFile("coarse.1.dat")
 
 
 
@@ -40,7 +40,7 @@ sys.path.append("../C_files_win/argout/")
 
 
 from surfVisualize import surfVisualize
-from getCtrlPtsAndWeights import *
+# from getCtrlPtsAndWeights import *
 from elasticityMatrix import elasticityMatrix
 from generateIGA2DMesh import generateIGA2DMesh
 from quadrature import quadrature

@@ -158,7 +158,6 @@ print("controlPts.tolist(): ", controlPts.tolist())
 print(uKnot)
 print(vKnot)
 
-exit()
 
 nodeStartTag=1
 
@@ -189,7 +188,8 @@ print("\n\n\nDONE PRINTING DOMAIN-----------------------")
 # ------------------------------
 
 # create TimeSeries
-ops.timeSeries("Linear", 1)
+# ops.timeSeries("Linear", 1)
+ops.timeSeries("Constant", 1)
 
 # create a plain load pattern
 ops.pattern("Plain", 1, 1)
@@ -213,7 +213,7 @@ ops.numberer("Plain")
 ops.constraints("Plain")
 
 # create integrator
-nSteps=1
+nSteps=9
 ops.integrator("LoadControl", 1.0/nSteps)
 
 ops.algorithm("Linear")
@@ -229,7 +229,8 @@ ops.analysis("Static")
 import matplotlib.pyplot as plt
 data=np.zeros((nSteps+1,2))
 for j in range(nSteps):
-    ops.analyze(1)
+    if ops.analyze(1)!=0:
+        print("analysis failed")
 
 print("Finished analysis")
 

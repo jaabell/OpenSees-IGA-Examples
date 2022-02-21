@@ -12,9 +12,9 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 from fileGetter import surfFromFile, generateKnotVector
 
 surfList=[]
-topSurf=surfFromFile("coarse.1.dat",deg_elevate=True)
+topSurf=surfFromFile("coarse.1.dat")
 # exit()
-bottomSurf=surfFromFile("coarse.2.dat",deg_elevate=True)
+bottomSurf=surfFromFile("coarse.2.dat")
 bendingStrip_1=surfFromFile("coarse.3.dat")
 bendingStrip_2=surfFromFile("coarse.4.dat")
 
@@ -37,6 +37,7 @@ for surf in aspa:
 
 
 exchange.export_stl(topSurf, "top.stl",vertex_spacing=1)
+
 # Export evaluated points as a .vtk file
 exchange_vtk.export_polydata(topSurf, "top.vtk", tessellate=True)
 

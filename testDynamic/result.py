@@ -4,7 +4,8 @@ from matplotlib.pylab import *
 
 
 
-defs=loadtxt("Node.out")
+defs=loadtxt("Node2.out")
+# defs=loadtxt("Node.out")
 plot(defs[:,0], defs[:,1],'-o')
 show()
 

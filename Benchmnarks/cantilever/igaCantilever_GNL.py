@@ -44,7 +44,7 @@ controlPts = np.array([
   [10.00000 , 1.0 , 0.0 , 1.0]
 ])
 
-
+weights =  controlPts[:,-1]
 
 
 # Create a NURBS surface instance
@@ -80,9 +80,9 @@ ops.nDMaterial("ElasticOrthotropicPlaneStress", tagPlaneStress1, E1, E2, nu12, n
 
 deg2rad = pi / 180
 
-matTags = [1]
-thickness = [t]
-θ = [0 * deg2rad]
+matTags = [1,1,1]
+thickness = [t/3,t/3,t/3]
+θ = [0 * deg2rad,0 * deg2rad, 0 * deg2rad]
 
 gFact = [0.0, 0.0, 0.0 * 9.807]
 
@@ -171,9 +171,9 @@ ops.constraints("Plain")
 # ops.algorithm("Linear")
 # ops.algorithm("Newton")
 # ops.algorithm("SecantNewton")
-ops.algorithm("NewtonLineSearch")
+# ops.algorithm("NewtonLineSearch")
 # ops.algorithm("ModifiedNewton")
-# ops.algorithm("KrylovNewton")
+ops.algorithm("KrylovNewton")
 # ops.algorithm("BFGS")
 # ops.algorithm("Broyden")
 
@@ -191,6 +191,17 @@ ops.integrator("DisplacementControl", 12, 3, delta)
 
 # create analysis object
 ops.analysis("Static")
+
+
+# Create MPCO recorder
+ops.recorder("mpco","iga_cantilever",
+    "-N","displacement",
+    "-E","section.fiber.stress",
+    "-E","section.fiber.strain",
+    "-E","section.fiber.damagestate",
+    )
+
+print(f"DONE! ")
 
 import matplotlib.pyplot as plt
 data = np.zeros((nSteps + 1, 3))
@@ -260,3 +271,150 @@ plt.legend()
 plt.show()
 
 print("Done")
+
+
+print("Done!")
+
+ops.remove("recorders")
+
+
+import scipy.io as sio
+import h5py
+
+file = h5py.File('iga_cantilever.mpco', 'r')
+
+patches = file['MODEL_STAGE[1]']['MODEL']['ELEMENTS']['1-UnknownMovableObject[0:0]'][:, 0]
+elements = file['MODEL_STAGE[1]']['MODEL']['ELEMENTS']['207-UnknownMovableObject[0:0]'][:, 0]
+
+print('patches = ', patches)
+print('elements = ', elements)
+# exit()
+
+controlPts = file['MODEL_STAGE[1]']['MODEL']['NODES']['COORDINATES'][:, :]
+# print(controlPts)
+# controlPts = np.array(compatibility.flip_ctrlpts(controlPts,noPtsY,noPtsX))
+# print(controlPts)
+# exit()
+
+U = file['MODEL_STAGE[1]']['RESULTS']['ON_NODES']['DISPLACEMENT']['DATA']['STEP_19'][:,:]
+shapeU = np.shape(U)
+U = np.reshape(U,shapeU[0]*shapeU[1])
+
+sigma = file['MODEL_STAGE[1]']['RESULTS']['ON_ELEMENTS']['section.fiber.stress']['207-UnknownMovableObject[0:0:0]']['DATA']['STEP_19'][:,:] # Shape (numElements x nLayers*noGps*3)
+strain = file['MODEL_STAGE[1]']['RESULTS']['ON_ELEMENTS']['section.fiber.strain']['207-UnknownMovableObject[0:0:0]']['DATA']['STEP_19'][:,:] # Shape (numElements x nLayers*noGps*3)
+
+
+
+shapeSigma=np.shape(sigma) # numEle x 3*nGauss
+shapeStrain=np.shape(strain)
+
+numEle = shapeSigma[0] 
+
+# print('numEle = ', numEle)
+
+range0 = np.arange(0,shapeSigma[1],3)
+range1 = range0+1
+range2 = range0+2
+
+# print('range0 = ', range0)
+
+sigmaXX = sigma[:,np.ix_(range0)]
+sigmaYY = sigma[:,np.ix_(range1)]
+sigmaXY = sigma[:,np.ix_(range2)]
+
+strainXX = strain[:,np.ix_(range0)]
+strainYY = strain[:,np.ix_(range1)]
+strainXY = strain[:,np.ix_(range2)]
+
+nGauss_3 = int(shapeSigma[1]/Nlayers)
+
+sigma = np.zeros([Nlayers,numEle,nGauss_3])
+strain = np.zeros([Nlayers,numEle,nGauss_3])
+
+
+
+for iLayer in range(Nlayers):
+
+  # rangeLayer = np.arange(iLayer,len(sigmaXX[0,0]),2)
+  rangeLayer = np.arange(iLayer,nGauss_3,Nlayers)
+
+  # print('rangeLayer = ', rangeLayer)
+
+  sigmaXX_layer = sigmaXX[:,:,np.ix_(rangeLayer)]
+  sigmaYY_layer = sigmaYY[:,:,np.ix_(rangeLayer)]
+  sigmaXY_layer = sigmaXY[:,:,np.ix_(rangeLayer)]
+
+  strainXX_layer = strainXX[:,:,np.ix_(rangeLayer)]
+  strainYY_layer = strainYY[:,:,np.ix_(rangeLayer)]
+  strainXY_layer = strainXY[:,:,np.ix_(rangeLayer)]
+
+  shapeSigma = np.shape(sigmaXX_layer)
+  shapeStrain = np.shape(strainXX_layer)
+
+  # print('shapeSigma = ', shapeSigma)
+
+  sigmaXX_layer = np.reshape(sigmaXX_layer,[1,shapeSigma[0],shapeSigma[-1]])
+  sigmaYY_layer = np.reshape(sigmaYY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+  sigmaXY_layer = np.reshape(sigmaXY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+
+  strainXX_layer = np.reshape(strainXX_layer,[1,shapeStrain[0],shapeStrain[-1]])
+  strainYY_layer = np.reshape(strainYY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+  strainXY_layer = np.reshape(strainXY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+
+
+  # range0 = np.arange(0,int(nGauss_3/3),3)
+  range0 = np.arange(0,int(nGauss_3),3)
+  range1 = np.arange(1,int(nGauss_3),3)
+  range2 = np.arange(2,int(nGauss_3),3)
+
+  grid0 = np.ix_([iLayer],range(numEle),range0)
+  grid1 = np.ix_([iLayer],range(numEle),range1)
+  grid2 = np.ix_([iLayer],range(numEle),range2)
+
+
+  sigma[grid0] = sigmaXX_layer
+  sigma[grid1] = sigmaYY_layer
+  sigma[grid2] = sigmaXY_layer
+
+
+  strain[grid0] = strainXX_layer
+  strain[grid1] = strainYY_layer
+  strain[grid2] = strainXY_layer
+
+
+
+zLocs = file['MODEL_STAGE[1]']['MODEL']['SECTION_ASSIGNMENTS']['SECTION_1[UnkownClassType]']['FIBER_DATA'][:,1] # Shape (numMaterial x 3 (algo, zLoc, thickness))
+
+shell={}
+
+
+P =surf.degree_u
+Q =surf.degree_v
+
+noPtsX  = surf.ctrlpts_size_u
+noPtsY  = surf.ctrlpts_size_v
+
+
+uKnot = surf.knotvector_u
+vKnot = surf.knotvector_v
+
+
+shell['p'] = P
+shell['q'] = Q 
+shell['uKnot'] = uKnot 
+shell['vKnot'] = vKnot 
+shell['noPtsX'] = noPtsX 
+shell['noPtsY'] = noPtsY 
+# shell['weights'] = np.transpose(weights)
+shell['weights'] = weights
+shell['controlPts'] = controlPts[:,0:3]
+shell['u'] = U 
+shell['stresses'] = sigma
+shell['strains'] = strain
+shell['nLayers'] = Nlayers
+shell['zLocs'] = zLocs
+
+
+sio.savemat('shell.mat',shell)
+
+print("Done saving .mat")

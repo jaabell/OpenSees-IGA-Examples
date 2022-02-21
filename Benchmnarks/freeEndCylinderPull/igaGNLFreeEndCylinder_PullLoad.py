@@ -8,8 +8,115 @@ import opensees as ops
 from math import *
 
 # Geomgl utilities for visualization and surface manipulation
-from geomdl import NURBS, compatibility, operations, knotvector
+from geomdl import NURBS, compatibility, operations, knotvector, multi
 from surfVisualize import *
+
+
+def symVisualize(surf):
+
+    # Symmetry
+    bbox = np.array(surf.bbox)
+    midPoint = (bbox[1] - bbox[0]) / 2
+
+
+    surfSym = operations.rotate(surf, 0, axis=1, inplace=False)
+    ctrlpts_surfSym = surfSym.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym:
+        for point in dim:
+            point[0] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym.reverse()  # Flipping
+    ctrlpts_surfSym = (np.array(ctrlpts_surfSym).reshape(surfSym.ctrlpts_size_u * surfSym.ctrlpts_size_v, 4))
+    surfSym.set_ctrlpts(ctrlpts_surfSym.tolist(), surfSym.ctrlpts_size_u, surfSym.ctrlpts_size_v)
+
+
+
+    surfSym_01=operations.rotate(surf, 0, axis=1, inplace=False)
+    ctrlpts_surfSym_01 = surfSym_01.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym_01:
+        for point in dim:
+            point[2] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym_01.reverse()  # Flipping
+    ctrlpts_surfSym_01 = (np.array(ctrlpts_surfSym_01).reshape(surfSym_01.ctrlpts_size_u * surfSym_01.ctrlpts_size_v, 4))
+    surfSym_01.set_ctrlpts(ctrlpts_surfSym_01.tolist(), surfSym_01.ctrlpts_size_u, surfSym_01.ctrlpts_size_v)
+
+    surfSym_02=operations.rotate(surfSym, 0, axis=1, inplace=False)
+    ctrlpts_surfSym_02 = surfSym_02.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym_02:
+        for point in dim:
+            point[2] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym_02.reverse()  # Flipping
+    ctrlpts_surfSym_02 = (np.array(ctrlpts_surfSym_02).reshape(surfSym_02.ctrlpts_size_u * surfSym_02.ctrlpts_size_v, 4))
+    surfSym_02.set_ctrlpts(ctrlpts_surfSym_02.tolist(), surfSym_02.ctrlpts_size_u, surfSym_02.ctrlpts_size_v)
+
+
+    # Updown
+
+    surf_down = operations.rotate(surf, 0, axis=1, inplace=False)
+    ctrlpts_surf_down = surf_down.ctrlpts2d[:]
+    for dim in ctrlpts_surf_down:
+        for point in dim:
+            point[1] *= -1  # Symmetry along y axis
+
+    ctrlpts_surf_down.reverse()  # Flipping
+    ctrlpts_surf_down = (np.array(ctrlpts_surf_down).reshape(surf_down.ctrlpts_size_u * surf_down.ctrlpts_size_v, 4))
+    surf_down.set_ctrlpts(ctrlpts_surf_down.tolist(), surf_down.ctrlpts_size_u, surf_down.ctrlpts_size_v)
+
+    surfSym_down = operations.rotate(surf_down, 0, axis=1, inplace=False)
+    ctrlpts_surfSym_down = surfSym_down.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym_down:
+        for point in dim:
+            point[0] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym_down.reverse()  # Flipping
+    ctrlpts_surfSym_down = (np.array(ctrlpts_surfSym_down).reshape(surfSym_down.ctrlpts_size_u * surfSym_down.ctrlpts_size_v, 4))
+    surfSym_down.set_ctrlpts(ctrlpts_surfSym_down.tolist(), surfSym_down.ctrlpts_size_u, surfSym_down.ctrlpts_size_v)
+
+
+
+    surfSym_01_down=operations.rotate(surf_down, 0, axis=1, inplace=False)
+    ctrlpts_surfSym_01_down = surfSym_01_down.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym_01_down:
+        for point in dim:
+            point[2] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym_01_down.reverse()  # Flipping
+    ctrlpts_surfSym_01_down = (np.array(ctrlpts_surfSym_01_down).reshape(surfSym_01_down.ctrlpts_size_u * surfSym_01_down.ctrlpts_size_v, 4))
+    surfSym_01_down.set_ctrlpts(ctrlpts_surfSym_01_down.tolist(), surfSym_01_down.ctrlpts_size_u, surfSym_01_down.ctrlpts_size_v)
+
+    surfSym_02_down=operations.rotate(surfSym_down, 0, axis=1, inplace=False)
+    ctrlpts_surfSym_02_down = surfSym_02_down.ctrlpts2d[:]
+    for dim in ctrlpts_surfSym_02_down:
+        for point in dim:
+            point[2] *= -1  # Symmetry along x axis
+
+    ctrlpts_surfSym_02_down.reverse()  # Flipping
+    ctrlpts_surfSym_02_down = (np.array(ctrlpts_surfSym_02_down).reshape(surfSym_02_down.ctrlpts_size_u * surfSym_02_down.ctrlpts_size_v, 4))
+    surfSym_02_down.set_ctrlpts(ctrlpts_surfSym_02_down.tolist(), surfSym_02_down.ctrlpts_size_u, surfSym_02_down.ctrlpts_size_v)
+
+
+    # Creating container for multipatches
+    surfList = [surf, surfSym, surfSym_01, surfSym_02, surf_down, surfSym_down, surfSym_01_down, surfSym_02_down]
+
+
+    container = multi.SurfaceContainer(surfList)
+
+    # Visualize surface
+
+    container.sample_size = 30
+    for surf in container:
+        surf.evaluate()
+
+    # Visualization configuration
+    container.vis = VisVTK.VisSurface(ctrlpts=False, legend=False, line_width=1, trim_size=20)
+    # container.vis.ctrlpts_offset=0.1
+
+    # Render the surface
+    evalcolor = ["red", "green", "green", "green",  "green",  "green",  "green",  "green"]
+    cpcolor=["red","black", "black", "black","black","black","black","black"]
+    container.render(evalcolor=evalcolor, cpcolor=cpcolor)
 
 
 def getCtrlPtsAndWeights(surf):
@@ -668,8 +775,8 @@ for point in controlPts:
     point[2]*=(5.175/3.048)
 
 patchTag = 1
-P = 5
-Q = 5
+P = 3
+Q = 3
 
 # Create a BSpline surface instance
 surf = NURBS.Surface()
@@ -689,6 +796,113 @@ surf.knotvector_v = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 # Visualize surface
 surfVisualize(surf, hold=True)
 # exit()
+
+
+# Symmetry
+bbox = np.array(surf.bbox)
+midPoint = (bbox[1] - bbox[0]) / 2
+
+
+surfSym = operations.rotate(surf, 0, axis=1, inplace=False)
+ctrlpts_surfSym = surfSym.ctrlpts2d[:]
+for dim in ctrlpts_surfSym:
+    for point in dim:
+        point[0] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym.reverse()  # Flipping
+ctrlpts_surfSym = (np.array(ctrlpts_surfSym).reshape(surfSym.ctrlpts_size_u * surfSym.ctrlpts_size_v, 4))
+surfSym.set_ctrlpts(ctrlpts_surfSym.tolist(), surfSym.ctrlpts_size_u, surfSym.ctrlpts_size_v)
+
+
+
+surfSym_01=operations.rotate(surf, 0, axis=1, inplace=False)
+ctrlpts_surfSym_01 = surfSym_01.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_01:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_01.reverse()  # Flipping
+ctrlpts_surfSym_01 = (np.array(ctrlpts_surfSym_01).reshape(surfSym_01.ctrlpts_size_u * surfSym_01.ctrlpts_size_v, 4))
+surfSym_01.set_ctrlpts(ctrlpts_surfSym_01.tolist(), surfSym_01.ctrlpts_size_u, surfSym_01.ctrlpts_size_v)
+
+surfSym_02=operations.rotate(surfSym, 0, axis=1, inplace=False)
+ctrlpts_surfSym_02 = surfSym_02.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_02:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_02.reverse()  # Flipping
+ctrlpts_surfSym_02 = (np.array(ctrlpts_surfSym_02).reshape(surfSym_02.ctrlpts_size_u * surfSym_02.ctrlpts_size_v, 4))
+surfSym_02.set_ctrlpts(ctrlpts_surfSym_02.tolist(), surfSym_02.ctrlpts_size_u, surfSym_02.ctrlpts_size_v)
+
+
+# Updown
+
+surf_down = operations.rotate(surf, 0, axis=1, inplace=False)
+ctrlpts_surf_down = surf_down.ctrlpts2d[:]
+for dim in ctrlpts_surf_down:
+    for point in dim:
+        point[1] *= -1  # Symmetry along y axis
+
+ctrlpts_surf_down.reverse()  # Flipping
+ctrlpts_surf_down = (np.array(ctrlpts_surf_down).reshape(surf_down.ctrlpts_size_u * surf_down.ctrlpts_size_v, 4))
+surf_down.set_ctrlpts(ctrlpts_surf_down.tolist(), surf_down.ctrlpts_size_u, surf_down.ctrlpts_size_v)
+
+surfSym_down = operations.rotate(surf_down, 0, axis=1, inplace=False)
+ctrlpts_surfSym_down = surfSym_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_down:
+    for point in dim:
+        point[0] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_down.reverse()  # Flipping
+ctrlpts_surfSym_down = (np.array(ctrlpts_surfSym_down).reshape(surfSym_down.ctrlpts_size_u * surfSym_down.ctrlpts_size_v, 4))
+surfSym_down.set_ctrlpts(ctrlpts_surfSym_down.tolist(), surfSym_down.ctrlpts_size_u, surfSym_down.ctrlpts_size_v)
+
+
+
+surfSym_01_down=operations.rotate(surf_down, 0, axis=1, inplace=False)
+ctrlpts_surfSym_01_down = surfSym_01_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_01_down:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_01_down.reverse()  # Flipping
+ctrlpts_surfSym_01_down = (np.array(ctrlpts_surfSym_01_down).reshape(surfSym_01_down.ctrlpts_size_u * surfSym_01_down.ctrlpts_size_v, 4))
+surfSym_01_down.set_ctrlpts(ctrlpts_surfSym_01_down.tolist(), surfSym_01_down.ctrlpts_size_u, surfSym_01_down.ctrlpts_size_v)
+
+surfSym_02_down=operations.rotate(surfSym_down, 0, axis=1, inplace=False)
+ctrlpts_surfSym_02_down = surfSym_02_down.ctrlpts2d[:]
+for dim in ctrlpts_surfSym_02_down:
+    for point in dim:
+        point[2] *= -1  # Symmetry along x axis
+
+ctrlpts_surfSym_02_down.reverse()  # Flipping
+ctrlpts_surfSym_02_down = (np.array(ctrlpts_surfSym_02_down).reshape(surfSym_02_down.ctrlpts_size_u * surfSym_02_down.ctrlpts_size_v, 4))
+surfSym_02_down.set_ctrlpts(ctrlpts_surfSym_02_down.tolist(), surfSym_02_down.ctrlpts_size_u, surfSym_02_down.ctrlpts_size_v)
+
+
+# Creating container for multipatches
+surfList = [surf, surfSym, surfSym_01, surfSym_02, surf_down, surfSym_down, surfSym_01_down, surfSym_02_down]
+
+
+container = multi.SurfaceContainer(surfList)
+
+# Visualize surface
+
+container.sample_size = 30
+for surf in container:
+    surf.evaluate()
+
+# Visualization configuration
+container.vis = VisVTK.VisSurface(ctrlpts=False, legend=False, line_width=1, trim_size=20)
+# container.vis.ctrlpts_offset=0.1
+
+# Render the surface
+evalcolor = ["red", "green", "green", "green",  "green",  "green",  "green",  "green"]
+cpcolor=["red","black", "black", "black","black","black","black","black"]
+container.render(evalcolor=evalcolor, cpcolor=cpcolor)
+
+
 
 
 # nDMaterial ElasticIsotropic $nDtag_elastic $elasticidad_probeta
@@ -740,7 +954,7 @@ for point in controlPts:
 
 nodeStartTag=1
 
-ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+ops.IGA("SurfacePatch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
         "-type", "KLShell",
         # "-nonLinearGeometry", 0,
         "-planeStressMatTags", *matTags,
@@ -836,6 +1050,7 @@ print("Starting analysis")
 
 # Create test
 # ops.test("NormDispIncr", 1.0e-5, 50, 1) # Apparently faster
+# ops.test("NormDispIncr", 1.0e-4, 30, 1) # Apparently faster
 ops.test("NormUnbalance", 1.0e-6, 50, 1)
 # ops.test("EnergyIncr", 1.0e-4, 80, 1)
 
@@ -847,6 +1062,7 @@ ops.numberer("Plain")
 
 # create constraint handler
 ops.constraints("Plain")
+# ops.constraints("Transformation")
 # ops.constraints("Penalty",1,1)
 
 
@@ -861,8 +1077,8 @@ ops.algorithm("NewtonLineSearch", 'type', 'Bisection')
 # ops.algorithm("Broyden")
 
 # create integrator
-# delta = 0.1/2 # was 0.1
-# defMax = 2.638
+# delta = 0.1
+# defMax = 2.7
 # nSteps = abs(int(defMax / delta))
 # ops.integrator("DisplacementControl", forcedNode, 2, delta)
 
@@ -908,6 +1124,7 @@ for j in range(nSteps):
 
         # Visualize surface
         surfVisualize(surf, hold=True)
+        # symVisualize()
 
         controlPts = surf.ctrlpts2d[:]
         controlPts = compatibility.flip_ctrlpts2d(
@@ -925,16 +1142,19 @@ for j in range(nSteps):
         surf.set_ctrlpts(controlPts.tolist(),
                          surf.ctrlpts_size_u, surf.ctrlpts_size_v)
 
-        data[j + 1, 0] = abs(ops.nodeDisp(forcedNode, 2))
+        data[j + 1, 0] = abs(ops.nodeDisp(forcedNode, 2)) # Point A
         data[j + 1, 1] = ops.getLoadFactor(1)
         data[j + 1, 2] = abs(ops.nodeDisp(pointB, 1))  # Point B
         data[j + 1, 3] = abs(ops.nodeDisp(pointC, 1))  # Point C
+
         # elasticSolution = (data[j + 1, 2] * (La**3)) / (3 * E1 * I)
         # print("ops.getLoadFactor(1)*Pz: ", ops.getLoadFactor(1) * Pz)
         # print("elasticSolution: ", elasticSolution)
-        print("data[j+1,0]: ", data[j + 1, 0])
-        print("data[j+1,1]: ", data[j + 1, 1])
-        print("4*data[j+1,1]: ", 4 * data[j + 1, 1])
+        print("Load: ",  4*data[j + 1, 1])
+        print("Point A: ", data[j + 1, 0])
+        print("Point B: ", data[j + 1, 2])
+        print("Point C: ", data[j + 1, 3])
+
 
         # B=ops.printB('-ret')
         # print("B: ", B)
@@ -971,8 +1191,21 @@ print("uC = ",data[:, 3])
 
 # Visualize surface
 # surfVisualize(surf, hold=True)
+controlPts = surf.ctrlpts2d[:]
+controlPts = compatibility.flip_ctrlpts2d(controlPts)  # Flipping to u,v
+i = 1
+for dim in controlPts:
+    for point in dim:
+        # Times the weight
+        point[:3] += fDef * np.array(ops.nodeDisp(i)) * point[3]
+        i += 1
+# Setting control points for surface
+controlPts = compatibility.flip_ctrlpts2d(controlPts)
+controlPts = (np.array(controlPts).reshape(nPoints, 4))
+surf.set_ctrlpts(controlPts.tolist(),surf.ctrlpts_size_u, surf.ctrlpts_size_v)
+symVisualize(surf)
 
-# print("Done")
+print("Done")
 
 # elasticSolution = (Pz * (La**3)) / (3 * E1 * I)
 

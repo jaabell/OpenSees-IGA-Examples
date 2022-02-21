@@ -1,6 +1,6 @@
 #  IGA CANTILEVER PLATE UNDER SELF WEIGHT. ONE ELEMENT MESH, LINEAR CONVERGENCE OBTAINED
 
-from surfVisualize import *
+# from surfVisualize import *
 from geomdl import NURBS, compatibility, operations
 import numpy as np
 import opensees as ops
@@ -86,7 +86,7 @@ patchTag = 1
 nodeStartTag = 1
 
 # ops.IGA call to create the patch (super element)
-ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
+ops.IGA("SurfacePatch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell", # Element type to use for the patch (used when creating a bending strip)
         # Flag that tells whether to use linear or non-linear geometry, linear in this case
         "-nonLinearGeometry", 1,
@@ -227,4 +227,4 @@ noPtsY = surf.ctrlpts_size_v
 
 
 # Visualize surface
-surfVisualize(surf, hold=True)
+# surfVisualize(surf, hold=True)

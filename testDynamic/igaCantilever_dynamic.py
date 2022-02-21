@@ -172,7 +172,7 @@ controlPts = np.array(compatibility.flip_ctrlpts2d(controlPts))
 
 ops.IGA("Patch", patchTag, nodeStartTag, P, Q, noPtsX, noPtsY,
         "-type", "KLShell",
-        # "-nonLinearGeometry", 0,
+        "-nonLinearGeometry", 1,
         "-planeStressMatTags", *matTags,
         "-gFact", *gFact,
         "-theta", *θ,
@@ -201,11 +201,8 @@ for n in ops.getNodeTags():
 # ------------------------------
 
 # create TimeSeries
-# ops.timeSeries("Constant", 1)
-ops.timeSeries("Linear", 1)
-
-
-
+ops.timeSeries("Constant", 1)
+# ops.timeSeries("Linear", 1)
 
 
 # create a plain load pattern

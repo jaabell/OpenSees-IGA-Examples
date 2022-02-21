@@ -4,7 +4,7 @@ import opensees as ops
 from math import *
 
 # Geomdl utilities for visualization and surface manipulation
-from geomdl import NURBS, compatibility, operations, multi, knotvector
+from geomdl import NURBS, compatibility, operations, multi, knotvector, fitting
 
 
 from fileGetter import surfFromFile
@@ -53,6 +53,8 @@ container.vis = VisVTK.VisSurface(ctrlpts=True, legend=False)
 # Render the aspa
 evalcolor = ["green", "red", "blue", "blue"]
 container.render(evalcolor=evalcolor)
+
+exit()
 
 
 ops.wipe()

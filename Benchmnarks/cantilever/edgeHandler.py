@@ -37,35 +37,100 @@ def edgeGetter(surf, pointA, pointB):
     return edgePoints,nextToEdgePoints
 
 
-def makeBendingStrip(pointsL,interface,pointsR):
+# def makeBendingStrip(pointsL,interface,pointsR):
+# 	# Receives u,v, returns bending strip surface
+
+# 	if len(pointsL)!=len(pointsR)!=len(interface):
+# 		print("Non matching dimensions")
+# 		return []
+
+# 	sizeU=3
+# 	sizeV=len(pointsL)
+
+# 	controlPts=np.zeros([sizeU*sizeV,4])
+
+# 	k=0
+# 	for i in range(sizeV):
+# 		controlPts[k,:]=pointsL[i]
+# 		k+=1
+# 	for i in range(sizeV):
+# 		controlPts[k,:]=interface[i]
+# 		k+=1
+# 	for i in range(sizeV):
+# 		controlPts[k,:]=pointsR[i]
+# 		k+=1
+
+# 	# Create surface 
+# 	bendingStrip = NURBS.Surface()
+
+# 	# Set surface degrees
+# 	bendingStrip.degree_u = 2
+# 	bendingStrip.degree_v = 1
+
+
+# 	# for point in controlPts:
+# 	# 	# point[0:3] /= point[3]
+# 	# 	point[0:3] *= point[3]
+# 		# point[3] = 1
+
+# 	# Setting control points for surface
+# 	bendingStrip.set_ctrlpts(controlPts.tolist(), sizeU, sizeV)
+
+# 	# Set knot vectors
+# 	bendingStrip.knotvector_u = knotvector.generate(bendingStrip.degree_u, bendingStrip.ctrlpts_size_u)
+# 	bendingStrip.knotvector_v = knotvector.generate(bendingStrip.degree_v, bendingStrip.ctrlpts_size_v)
+
+# 	return bendingStrip
+
+def makeBendingStrip(pointsL,interface,pointsR,direction):
 	# Receives u,v, returns bending strip surface
 
 	if len(pointsL)!=len(pointsR)!=len(interface):
 		print("Non matching dimensions")
 		return []
 
-	sizeU=3
-	sizeV=len(pointsL)
+	if direction == 'u':
+		sizeU=3
+		sizeV=len(pointsL)
+	else:
+		sizeU=len(pointsL)
+		sizeV=3
 
 	controlPts=np.zeros([sizeU*sizeV,4])
 
-	k=0
-	for i in range(sizeV):
-		controlPts[k,:]=pointsL[i]
-		k+=1
-	for i in range(sizeV):
-		controlPts[k,:]=interface[i]
-		k+=1
-	for i in range(sizeV):
-		controlPts[k,:]=pointsR[i]
-		k+=1
+	if direction == "u":
+		k=0
+		for i in range(sizeV):
+			controlPts[i,:]=pointsL[k]
+			k+=1
+		k=0
+		for i in range(sizeV,2*sizeV):
+			controlPts[i,:]=interface[k]
+			k+=1
+		k=0
+		for i in range(2*sizeV,3*sizeV):
+			controlPts[i,:]=pointsR[k]
+			k+=1
+
+	else:
+		for i in range(sizeU):
+			controlPts[3*i,:]=pointsL[i]
+			controlPts[3*i+1,:]=interface[i]
+			controlPts[3*i+2,:]=pointsR[i]
+
+
 
 	# Create surface 
 	bendingStrip = NURBS.Surface()
 
 	# Set surface degrees
-	bendingStrip.degree_u = 2
-	bendingStrip.degree_v = 1
+	if direction == "v":
+		bendingStrip.degree_u = 1
+		bendingStrip.degree_v = 2
+	else:
+		bendingStrip.degree_u = 2
+		bendingStrip.degree_v = 1
+
 
 
 	# for point in controlPts:

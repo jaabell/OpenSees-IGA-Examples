@@ -845,7 +845,8 @@ ops.system("UmfPack")
 ops.numberer("RCM")
 
 # create constraint handler
-ops.constraints("Plain")
+# ops.constraints("Plain")
+ops.constraints("Transformation")
 # ops.constraints("Penalty",1,1)
 
 

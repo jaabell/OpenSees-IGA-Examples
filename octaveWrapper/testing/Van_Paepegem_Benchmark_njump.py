@@ -7,6 +7,8 @@ from matplotlib.pylab import *
 from scipy.interpolate import interp1d
 
 
+
+
 octave.addpath(octave.genpath('octaveFiles/'))
 
 a = 54.0;
@@ -66,6 +68,8 @@ noPtsY = surf_L.ctrlpts_size_v
 
 # Visualize surface
 surfVisualize(surf_L, hold=False)
+
+
 
 
 # Creating second surface
@@ -155,6 +159,519 @@ container.vis = VisMPL.VisSurface(ctrlpts=True, legend=False)
 # Render the surface
 evalcolor = ["green", 'blue','red']
 container.render(evalcolor=evalcolor)
+
+
+# # PostProcessing
+
+# import scipy.io as sio
+# import h5py
+
+# # file = h5py.File('aspa.mpco', 'r')
+# file = h5py.File('/home/rodrigo/FelipeElgueta/OpenSees-IGA-Examples/octaveWrapper/testing/benchmarkDamage.mpco', 'r')
+
+# use_damage = True
+
+
+# surfList = [surf_L, surf_R]
+
+# times = np.arange(0,2119,40)
+
+# print(len(times))
+
+# stages = [1]
+# maxTimes = len(times)
+# startTime = 0
+
+# for stage in stages:
+
+#     modelStage = f'MODEL_STAGE[{stage}]'
+
+#     patches = file[modelStage]['MODEL']['ELEMENTS']['1-UnknownMovableObject[0:0]'][:, 0] # These are the subdomains -> Iga Patches
+#     elements = file[modelStage]['MODEL']['ELEMENTS']['207-UnknownMovableObject[0:0]'][:, 0] # These are the IGA_KLShell elements
+
+#     nodes = file[modelStage]['MODEL']['ELEMENTS']['207-UnknownMovableObject[0:0]'][:, 1:]
+
+#     print('nodes = \n', nodes)
+
+#     numPatches = 1
+
+#     nodesOnPatches = []
+#     elementsOnPatches = []
+
+#     continueSearch = True
+#     while continueSearch:
+
+#       for i in range(1,len(nodes)):
+#         currentElement = elements[i-1]
+#         nextElement = elements[i]
+
+#         print("currentElement = ", currentElement)
+#         print("nextElement = ", nextElement)
+
+#         foundPatch = True
+
+#         if abs(nextElement - currentElement) > 1:
+#           continueSearch = True
+#           foundPatch = True
+#           numPatches += 1
+#           print('breaking in i = ', i)
+#           break_i = i
+#           nodesOnPatches.append(nodes[:i,:])
+#           elementsOnPatches.append(elements[:i])
+#           nodes = nodes[i:,:]
+#           elements = elements[i:]
+#           print('nodes = ', nodes)
+#           print('elements = ', elements)
+#           break
+#         else:
+#           foundPatch = False
+
+#       if not foundPatch:
+#         continueSearch = False
+#         nodesOnPatches.append(nodes)
+#         elementsOnPatches.append(elements)
+
+#       else:
+#         pass
+
+
+#     print('numPatches = ', numPatches)
+
+#     # Getting layup info
+#     layupData = file[modelStage]['MODEL']['SECTION_ASSIGNMENTS']
+#     layupData_keys = layupData.keys()
+#     numLayups = len(layupData)
+#     print('numLayups = ', numLayups)
+#     print('layupData_keys = ', layupData_keys)
+
+#     zLocs_list = []
+
+#     for key in layupData_keys:
+#         print('key = ', key)
+
+#         layupData_here = layupData[key]
+
+#         zLocs_layups = layupData_here['FIBER_DATA'][:,1] # Shape (numMaterial x 3 (algo, zLoc, thickness))
+
+#         print('zLocs_layups = ', zLocs_layups)
+
+#         zLocs_list.append(zLocs_layups)
+
+
+
+
+#     # Getting nodeLimits in order to know which nodes are from which patch
+#     nodeLimits = []
+#     for nodes in nodesOnPatches:
+#       nodeLimits.append([nodes[0,0],nodes[-1,-1]])
+
+
+
+
+#     nTimes = len(file[modelStage]['RESULTS']['ON_NODES']['DISPLACEMENT']['DATA'])
+
+#     nTimes = min(maxTimes,nTimes) # Just so the data is not too much
+
+#     # for time in range(nTimes):
+#     for time in range(len(times)):
+
+
+
+#       step = f'STEP_{times[time] + startTime}' 
+
+#       print(step)
+
+#       controlPts = file[modelStage]['MODEL']['NODES']['COORDINATES'][:, :] # All the control points / nodes in the model
+#       U = file[modelStage]['RESULTS']['ON_NODES']['DISPLACEMENT']['DATA'][step][:,:] # All the displacements in the model
+
+#       nResults = len(file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress']) # Doesn't have to be stress, just need the number of files
+
+#       # The files are different because they are not the same size (nLayers)
+     
+#       dictResults = {}
+
+#       for nFile in range(nResults):
+#         # Getting current file tag
+
+#         actualFile = f'207-UnknownMovableObject[0:0:{nFile}]'
+
+#         multiplicity = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress'][actualFile]['META']['MULTIPLICITY'][0,0]
+
+
+#         dictResults[multiplicity] = actualFile
+    
+
+#       controlPts_patches = []
+#       sigma_patches = []
+#       strain_patches =[]
+#       damage_patches = []
+#       U_patches=[]
+#       Nlayers_patches=[]
+
+
+#       # Looping through the 'patches'
+#       prevNlayers = len(zLocs_list[0])
+#       for i in range(len(nodeLimits)):
+
+#         zLocs = zLocs_list[i]
+
+#         Nlayers = len(zLocs)
+#         Nlayers_patches.append(Nlayers)
+
+#         # This is [nlayers1, nlayers2, nlayers3,.... etc]
+#         sizesFile = dictResults.keys()
+
+#         # for Nlayers_file in sizesFile:
+#         #     print('Nlayers_file = ', Nlayers_file)  
+#         #     if Nlayers == Nlayers_file
+
+   
+
+#         # Need the specific file on strains and stresses depending on the size
+#         actualFile = dictResults[Nlayers]
+#         print('actualFile = ', actualFile)
+
+
+#         sigma_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*3)
+#         strain_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.strain'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*3)
+        
+#         if use_damage:
+#             damage_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.damagestate'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*9)
+
+#         nodeStart, nodeEnd = nodeLimits[i]
+#         rangeNodes = np.arange(nodeStart,nodeEnd+1,1) - 1
+#         grid = np.ix_(rangeNodes,range(3))
+
+#         controlPts_here = controlPts[grid]
+#         U_here = U[grid]
+#         shapeU_here = np.shape(U_here)
+#         U_here = np.reshape(U_here,shapeU_here[0]*shapeU_here[1])
+
+
+#         elementsThisPatch = elementsOnPatches[i]
+
+#         controlPts_patches.append(controlPts_here)
+#         U_patches.append(U_here)
+
+#         # print('elementsThisPatch = ', elementsThisPatch)
+
+#         if Nlayers != prevNlayers or i==0:
+#             # I'm on a different file
+#             newFile = True
+#         else:
+#             # Same file
+#             newFile = False
+
+
+
+#         # Have to do a new grid
+#         if newFile:
+#           # I'm in the first patch
+#           numEleThisPatch = len(elementsThisPatch)
+#           id_elements = np.arange(0,numEleThisPatch,1)
+
+#         else:
+#           elementsPrevPatch = elementsOnPatches[i-1]
+#           numEleThisPatch = len(elementsThisPatch)
+#           numElePrevPatch = len(elementsPrevPatch)
+#           id_elements = np.arange(numElePrevPatch, numElePrevPatch+numEleThisPatch,1)
+
+#         # print('id_elements = ', id_elements)
+#         print('len(id_elements) = ', len(id_elements))
+
+
+#         nData = len(sigma_global[0])
+#         grid = np.ix_(id_elements,range(nData))
+
+#         if use_damage:
+#             nData_damage = len(damage_global[0])
+#             grid_damage = np.ix_(id_elements,range(nData_damage))
+
+#         # continue
+
+
+
+
+
+#         # Getting stresses and strains from elements in each layer
+#         sigma = sigma_global[grid]
+#         strain = strain_global[grid]
+#         if use_damage:
+#             damage = damage_global[grid_damage]
+
+#         # print('sigma = ', sigma)
+
+
+#         shapeSigma=np.shape(sigma) # numEle x 3*nGauss
+#         shapeStrain=np.shape(strain)
+#         if use_damage:
+#             shapeDamage=np.shape(damage)
+
+#         numEle = shapeSigma[0] 
+
+#         # print('numEle = ', numEle)
+
+#         # Ranges for stress and strain
+#         range0 = np.arange(0,shapeSigma[1],3)
+#         range1 = range0+1
+#         range2 = range0+2
+
+#         # Ranges for damage
+#         if use_damage:
+#             range0_damage = np.arange(0,shapeDamage[1],9)
+#             range1_damage = range0_damage+1
+#             range2_damage = range0_damage+2
+#             range3_damage = range0_damage+3
+#             range4_damage = range0_damage+4
+#             range5_damage = range0_damage+5
+#             range6_damage = range0_damage+6
+#             range7_damage = range0_damage+7
+#             range8_damage = range0_damage+8
+
+#         # print('range0 = ', range0)
+
+#         # Getting quantities in each direction for all layers
+#         sigmaXX = sigma[:,np.ix_(range0)]
+#         sigmaYY = sigma[:,np.ix_(range1)]
+#         sigmaXY = sigma[:,np.ix_(range2)]
+#         strainXX = strain[:,np.ix_(range0)]
+#         strainYY = strain[:,np.ix_(range1)]
+#         strainXY = strain[:,np.ix_(range2)]
+
+#         # Getting damage variables (9 in total)
+#         if use_damage:
+#             damage_0 = damage[:,np.ix_(range0_damage)]
+#             damage_1 = damage[:,np.ix_(range1_damage)]
+#             damage_2 = damage[:,np.ix_(range2_damage)]
+#             damage_3 = damage[:,np.ix_(range3_damage)]
+#             damage_4 = damage[:,np.ix_(range4_damage)]
+#             damage_5 = damage[:,np.ix_(range5_damage)]
+#             damage_6 = damage[:,np.ix_(range6_damage)]
+#             damage_7 = damage[:,np.ix_(range7_damage)]
+#             damage_8 = damage[:,np.ix_(range8_damage)]
+
+
+#         # print('sigmaXX = ', sigmaXX)
+
+#         nGauss_3 = int(shapeSigma[1]/Nlayers)
+#         if use_damage:
+#             nGauss_9 = int(shapeDamage[1]/Nlayers)
+
+#         # print('nGauss_3 = ', nGauss_3)
+
+#         sigma = np.zeros([Nlayers,numEle,nGauss_3])
+#         strain = np.zeros([Nlayers,numEle,nGauss_3])
+#         if use_damage:
+#             damage = np.zeros([Nlayers,numEle,nGauss_9])
+
+
+
+#         for iLayer in range(Nlayers):
+
+#           rangeLayer = np.arange(iLayer,int(nGauss_3/3)*Nlayers,Nlayers)
+#           if use_damage:
+#             rangeLayer_damage = np.arange(iLayer,int(nGauss_9/9)*Nlayers,Nlayers)
+#           # if Nlayers == 1:
+#           #   rangeLayer = np.arange(iLayer,int(nGauss_3/3),Nlayers)
+#           # else:
+#           #   rangeLayer = np.arange(iLayer,nGauss_3,Nlayers)
+
+#           # print('rangeLayer = ', rangeLayer)
+
+#           # Getting stresses and strains corresponding to actual layer 
+#           sigmaXX_layer = sigmaXX[:,:,np.ix_(rangeLayer)]
+#           sigmaYY_layer = sigmaYY[:,:,np.ix_(rangeLayer)]
+#           sigmaXY_layer = sigmaXY[:,:,np.ix_(rangeLayer)]
+
+
+#           # print("sigmaXX_layer = ", sigmaXX_layer)
+#           # print("sigmaYY_layer = ", sigmaYY_layer)
+#           # print("sigmaXY_layer = ", sigmaXY_layer)
+#           # exit()
+
+
+#           strainXX_layer = strainXX[:,:,np.ix_(rangeLayer)]
+#           strainYY_layer = strainYY[:,:,np.ix_(rangeLayer)]
+#           strainXY_layer = strainXY[:,:,np.ix_(rangeLayer)]
+
+#           # Getting damage variables corresponding to actual layer
+#           if use_damage:
+#             damage0_layer = damage_0[:,:,np.ix_(rangeLayer_damage)]
+#             damage1_layer = damage_1[:,:,np.ix_(rangeLayer_damage)]
+#             damage2_layer = damage_2[:,:,np.ix_(rangeLayer_damage)]
+#             damage3_layer = damage_3[:,:,np.ix_(rangeLayer_damage)]
+#             damage4_layer = damage_4[:,:,np.ix_(rangeLayer_damage)]
+#             damage5_layer = damage_5[:,:,np.ix_(rangeLayer_damage)]
+#             damage6_layer = damage_6[:,:,np.ix_(rangeLayer_damage)]
+#             damage7_layer = damage_7[:,:,np.ix_(rangeLayer_damage)]
+#             damage8_layer = damage_8[:,:,np.ix_(rangeLayer_damage)]
+
+
+
+
+#           shapeSigma = np.shape(sigmaXX_layer)
+#           shapeStrain = np.shape(strainXX_layer)
+#           if use_damage:
+#             shapeDamage = np.shape(damage0_layer)
+
+#           # print('shapeSigma = ', shapeSigma)
+
+#           sigmaXX_layer = np.reshape(sigmaXX_layer,[1,shapeSigma[0],shapeSigma[-1]])
+#           sigmaYY_layer = np.reshape(sigmaYY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+#           sigmaXY_layer = np.reshape(sigmaXY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+
+#           strainXX_layer = np.reshape(strainXX_layer,[1,shapeStrain[0],shapeStrain[-1]])
+#           strainYY_layer = np.reshape(strainYY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+#           strainXY_layer = np.reshape(strainXY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+
+#           if use_damage:
+#             damage0_layer = np.reshape(damage0_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage1_layer = np.reshape(damage1_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage2_layer = np.reshape(damage2_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage3_layer = np.reshape(damage3_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage4_layer = np.reshape(damage4_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage5_layer = np.reshape(damage5_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage6_layer = np.reshape(damage6_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage7_layer = np.reshape(damage7_layer,[1,shapeDamage[0],shapeDamage[-1]])
+#             damage8_layer = np.reshape(damage8_layer,[1,shapeDamage[0],shapeDamage[-1]])
+
+
+
+#           # range0 = np.arange(0,int(nGauss_3/3),3)
+#           # Ranges for stresses and strains
+#           range0 = np.arange(0,int(nGauss_3),3)
+#           range1 = np.arange(1,int(nGauss_3),3)
+#           range2 = np.arange(2,int(nGauss_3),3)
+
+#           # Ranges for damage
+#           if use_damage:
+#             range0_damage = np.arange(0,int(nGauss_9),9)
+#             range1_damage = np.arange(1,int(nGauss_9),9)
+#             range2_damage = np.arange(2,int(nGauss_9),9)
+#             range3_damage = np.arange(3,int(nGauss_9),9)
+#             range4_damage = np.arange(4,int(nGauss_9),9)
+#             range5_damage = np.arange(5,int(nGauss_9),9)
+#             range6_damage = np.arange(6,int(nGauss_9),9)
+#             range7_damage = np.arange(7,int(nGauss_9),9)
+#             range8_damage = np.arange(8,int(nGauss_9),9)
+
+
+#           # Grids for stresses and strains
+#           grid0 = np.ix_([iLayer],range(numEle),range0)
+#           grid1 = np.ix_([iLayer],range(numEle),range1)
+#           grid2 = np.ix_([iLayer],range(numEle),range2)
+
+
+#           # Grids for damage
+#           if use_damage:
+#             grid0_damage = np.ix_([iLayer],range(numEle),range0_damage)
+#             grid1_damage = np.ix_([iLayer],range(numEle),range1_damage)
+#             grid2_damage = np.ix_([iLayer],range(numEle),range2_damage)
+#             grid3_damage = np.ix_([iLayer],range(numEle),range3_damage)
+#             grid4_damage = np.ix_([iLayer],range(numEle),range4_damage)
+#             grid5_damage = np.ix_([iLayer],range(numEle),range5_damage)
+#             grid6_damage = np.ix_([iLayer],range(numEle),range6_damage)
+#             grid7_damage = np.ix_([iLayer],range(numEle),range7_damage)
+#             grid8_damage = np.ix_([iLayer],range(numEle),range8_damage)
+
+
+#           # Assigning stresses and strains to the arrays
+#           sigma[grid0] = sigmaXX_layer
+#           sigma[grid1] = sigmaYY_layer
+#           sigma[grid2] = sigmaXY_layer
+#           strain[grid0] = strainXX_layer
+#           strain[grid1] = strainYY_layer
+#           strain[grid2] = strainXY_layer
+
+#           # Assigning damage variables to array
+#           if use_damage:
+#             damage[grid0_damage] = damage0_layer
+#             damage[grid1_damage] = damage1_layer
+#             damage[grid2_damage] = damage2_layer
+#             damage[grid3_damage] = damage3_layer
+#             damage[grid4_damage] = damage4_layer
+#             damage[grid5_damage] = damage5_layer
+#             damage[grid6_damage] = damage6_layer
+#             damage[grid7_damage] = damage7_layer
+#             damage[grid8_damage] = damage8_layer
+
+
+#         sigma_patches.append(sigma)
+#         strain_patches.append(strain)
+#         if use_damage:
+#             damage_patches.append(damage)
+
+
+#         prevNlayers = Nlayers
+
+
+#       # Until here I have the controlPts for each patch and the U vector for each patch (I hope)
+
+    
+#       for (surf,i) in zip(surfList,range(len(surfList))):
+#         surf = surfList[i]
+
+#         shell={}
+
+#         Nlayers = Nlayers_patches[i]
+#         zLocs = zLocs_list[i]
+
+
+#         P = surf.degree_u
+#         Q = surf.degree_v
+
+#         noPtsX  = surf.ctrlpts_size_u
+#         noPtsY  = surf.ctrlpts_size_v
+
+
+#         uKnot = surf.knotvector_u
+#         vKnot = surf.knotvector_v
+
+#         # Recover info for the current patch from the lists
+#         controlPts = controlPts_patches[i]
+#         weights = [1]*len(controlPts)
+#         U = U_patches[i]
+#         sigma = sigma_patches[i]
+#         strain = strain_patches[i]
+#         if use_damage:
+#             damage = damage_patches[i]
+
+#         print('np.shape(sigma) = ', np.shape(sigma))
+
+
+#         shell['p'] = P
+#         shell['q'] = Q 
+#         shell['uKnot'] = uKnot 
+#         shell['vKnot'] = vKnot 
+#         shell['noPtsX'] = noPtsX 
+#         shell['noPtsY'] = noPtsY 
+#         # shell['weights'] = np.transpose(weights)
+#         shell['weights'] = weights
+#         shell['controlPts'] = controlPts
+#         shell['u'] = U 
+#         shell['stresses'] = sigma
+#         shell['strains'] = strain
+#         if use_damage:
+#             shell['damage'] = damage
+#         shell['nLayers'] = Nlayers
+#         shell['zLocs'] = zLocs
+
+
+#         print('damage = \n', damage,'\n')
+
+
+#         matName = f'shell_{i}_{time}.mat'
+#         sio.savemat(matName,shell)
+
+#         print("Done saving .mat = ", matName)
+
+
+
+
+
+
+
+
 
 
 import opensees as ops
@@ -265,7 +782,7 @@ for i in range(len(container)):
     print(surf.knotvector_v)
 
     # Creating a Patch in OpenSees
-    ops.IGA("Patch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
+    ops.IGA("SurfacePatch", patchTag, nodeStartTag, surf.degree_u, surf.degree_v, surf.ctrlpts_size_u, surf.ctrlpts_size_v,
             "-type", shellType,
             # "-nonLinearGeometry", 0,
             "-planeStressMatTags", *matTags,
@@ -386,6 +903,15 @@ show()
 # ------------------------------
 # Start of analysis generation
 # ------------------------------
+
+# Create MPCO recorder
+ops.recorder("mpco","benchmarkDamage",
+    "-N","displacement",
+    "-E","section.fiber.stress",
+    "-E","section.fiber.strain",
+    "-E","section.fiber.damagestate",
+    )
+
 
 # create TimeSeries
 ops.timeSeries("Linear", 1)
@@ -599,7 +1125,7 @@ cycles = []
 
 cycle=1
 i=0
-while (cycle < 11e5):
+while (cycle < 8e5):
 # for i in range(nSteps):
     print("\n\nStep = ", i)
     loadFactor_max = computeCycle()
@@ -619,7 +1145,7 @@ while (cycle < 11e5):
                 eleNumber = int(eleNumber)
                 gp=int(gp)
                 capa=int(capa)
-                NJUMPVECTOR[eleNumber-elementsWithDamage[0], gp, capa,:] = ops.eleResponse(eleNumber, "material_and_layer_number", str(gp), str(capa), 'NJUMP', '0.015')
+                NJUMPVECTOR[eleNumber-elementsWithDamage[0], gp, capa,:] = ops.eleResponse(eleNumber, "material_and_layer_number", str(gp), str(capa), 'NJUMP', '0.01')
                 # print('NJUMPVECTOR[eleNumber-elementsWithDamage[0], gp, capa, :] = ', NJUMPVECTOR[eleNumber-elementsWithDamage[0], gp, capa, :])
     
     # kwargs = dict(alpha=0.5, bins=100, density=True, stacked=True)
@@ -642,7 +1168,7 @@ while (cycle < 11e5):
     # cumulativeFreq /= len(NJUMPVECTOR.flatten()) # This is the normalized integral
 
 
-    NJUMP_perc = 2e-2
+    NJUMP_perc = 1e-2
     index_njump_perc = (np.abs(cumulativeFreq-NJUMP_perc)).argmin()
     print('index_njump_perc = ', index_njump_perc)
     print("int(bins[index_njump_perc]) = ", int(bins[index_njump_perc]))
@@ -659,7 +1185,7 @@ while (cycle < 11e5):
     nCycles = int(bins[index_njump_perc])
 
     frequency_inter=interp1d(cumulativeFreq,bins)
-    nCycles = frequency_inter(NJUMP_perc)
+    nCycles = int(frequency_inter(NJUMP_perc))
     print('frequency_inter(NJUMP_perc) = ',frequency_inter(NJUMP_perc))
 
     if nCycles == 0 :
@@ -706,8 +1232,8 @@ while (cycle < 11e5):
     # else:
     #     ops.setParameter('-val', int(nCycles), "-ele", 1, "advanceDamageState")
 
-
     ops.setParameter('-val', 0, "-ele", 1, "resetMaxStress")
+
     if i == 0:
         # cycles[i] = nCycles
         cycles.append(nCycles)
@@ -740,9 +1266,511 @@ print("Cycles = \n",cycles)
 plot(cycles, loadFactors, 'or')
 plot(cycles_data, force_data, '-b')
 
+print(loadFactors)
+
+
+
 # ticklabel_format(useOffset=False)
 show()
 print("Done")
+
+
+# PostProcessing
+
+import scipy.io as sio
+import h5py
+
+# file = h5py.File('aspa.mpco', 'r')
+file = h5py.File('/home/rodrigo/FelipeElgueta/OpenSees-IGA-Examples/octaveWrapper/testing/benchmarkDamage.mpco', 'r')
+
+use_damage = True
+
+
+surfList = [surf_L, surf_R]
+
+times = np.arange(0,2119,40)
+
+print(len(times))
+
+stages = [1]
+maxTimes = len(times)
+startTime = 0
+
+for stage in stages:
+
+    modelStage = f'MODEL_STAGE[{stage}]'
+
+    patches = file[modelStage]['MODEL']['ELEMENTS']['1-UnknownMovableObject[0:0]'][:, 0] # These are the subdomains -> Iga Patches
+    elements = file[modelStage]['MODEL']['ELEMENTS']['207-UnknownMovableObject[0:0]'][:, 0] # These are the IGA_KLShell elements
+
+    nodes = file[modelStage]['MODEL']['ELEMENTS']['207-UnknownMovableObject[0:0]'][:, 1:]
+
+    print('nodes = \n', nodes)
+
+    numPatches = 1
+
+    nodesOnPatches = []
+    elementsOnPatches = []
+
+    continueSearch = True
+    while continueSearch:
+
+      for i in range(1,len(nodes)):
+        currentElement = elements[i-1]
+        nextElement = elements[i]
+
+        print("currentElement = ", currentElement)
+        print("nextElement = ", nextElement)
+
+        foundPatch = True
+
+        if abs(nextElement - currentElement) > 1:
+          continueSearch = True
+          foundPatch = True
+          numPatches += 1
+          print('breaking in i = ', i)
+          break_i = i
+          nodesOnPatches.append(nodes[:i,:])
+          elementsOnPatches.append(elements[:i])
+          nodes = nodes[i:,:]
+          elements = elements[i:]
+          print('nodes = ', nodes)
+          print('elements = ', elements)
+          break
+        else:
+          foundPatch = False
+
+      if not foundPatch:
+        continueSearch = False
+        nodesOnPatches.append(nodes)
+        elementsOnPatches.append(elements)
+
+      else:
+        pass
+
+
+    print('numPatches = ', numPatches)
+
+    # Getting layup info
+    layupData = file[modelStage]['MODEL']['SECTION_ASSIGNMENTS']
+    layupData_keys = layupData.keys()
+    numLayups = len(layupData)
+    print('numLayups = ', numLayups)
+    print('layupData_keys = ', layupData_keys)
+
+    zLocs_list = []
+
+    for key in layupData_keys:
+        print('key = ', key)
+
+        layupData_here = layupData[key]
+
+        zLocs_layups = layupData_here['FIBER_DATA'][:,1] # Shape (numMaterial x 3 (algo, zLoc, thickness))
+
+        print('zLocs_layups = ', zLocs_layups)
+
+        zLocs_list.append(zLocs_layups)
+
+
+
+
+    # Getting nodeLimits in order to know which nodes are from which patch
+    nodeLimits = []
+    for nodes in nodesOnPatches:
+      nodeLimits.append([nodes[0,0],nodes[-1,-1]])
+
+
+
+
+    nTimes = len(file[modelStage]['RESULTS']['ON_NODES']['DISPLACEMENT']['DATA'])
+
+    nTimes = min(maxTimes,nTimes) # Just so the data is not too much
+
+    # for time in range(nTimes):
+    for time in times:
+
+      step = f'STEP_{time + startTime}' 
+
+      controlPts = file[modelStage]['MODEL']['NODES']['COORDINATES'][:, :] # All the control points / nodes in the model
+      U = file[modelStage]['RESULTS']['ON_NODES']['DISPLACEMENT']['DATA'][step][:,:] # All the displacements in the model
+
+      nResults = len(file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress']) # Doesn't have to be stress, just need the number of files
+
+      # The files are different because they are not the same size (nLayers)
+     
+      dictResults = {}
+
+      for nFile in range(nResults):
+        # Getting current file tag
+
+        actualFile = f'207-UnknownMovableObject[0:0:{nFile}]'
+
+        multiplicity = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress'][actualFile]['META']['MULTIPLICITY'][0,0]
+
+
+        dictResults[multiplicity] = actualFile
+    
+
+      controlPts_patches = []
+      sigma_patches = []
+      strain_patches =[]
+      damage_patches = []
+      U_patches=[]
+      Nlayers_patches=[]
+
+
+      # Looping through the 'patches'
+      prevNlayers = len(zLocs_list[0])
+      for i in range(len(nodeLimits)):
+
+        zLocs = zLocs_list[i]
+
+        Nlayers = len(zLocs)
+        Nlayers_patches.append(Nlayers)
+
+        # This is [nlayers1, nlayers2, nlayers3,.... etc]
+        sizesFile = dictResults.keys()
+
+        # for Nlayers_file in sizesFile:
+        #     print('Nlayers_file = ', Nlayers_file)  
+        #     if Nlayers == Nlayers_file
+
+   
+
+        # Need the specific file on strains and stresses depending on the size
+        actualFile = dictResults[Nlayers]
+        print('actualFile = ', actualFile)
+
+
+        sigma_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.stress'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*3)
+        strain_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.strain'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*3)
+        
+        if use_damage:
+            damage_global = file[modelStage]['RESULTS']['ON_ELEMENTS']['section.fiber.damagestate'][actualFile]['DATA'][step][:,:] # Shape (numElements x Nlayers*noGps*9)
+
+        nodeStart, nodeEnd = nodeLimits[i]
+        rangeNodes = np.arange(nodeStart,nodeEnd+1,1) - 1
+        grid = np.ix_(rangeNodes,range(3))
+
+        controlPts_here = controlPts[grid]
+        U_here = U[grid]
+        shapeU_here = np.shape(U_here)
+        U_here = np.reshape(U_here,shapeU_here[0]*shapeU_here[1])
+
+
+        elementsThisPatch = elementsOnPatches[i]
+
+        controlPts_patches.append(controlPts_here)
+        U_patches.append(U_here)
+
+        # print('elementsThisPatch = ', elementsThisPatch)
+
+        if Nlayers != prevNlayers or i==0:
+            # I'm on a different file
+            newFile = True
+        else:
+            # Same file
+            newFile = False
+
+
+
+        # Have to do a new grid
+        if newFile:
+          # I'm in the first patch
+          numEleThisPatch = len(elementsThisPatch)
+          id_elements = np.arange(0,numEleThisPatch,1)
+
+        else:
+          elementsPrevPatch = elementsOnPatches[i-1]
+          numEleThisPatch = len(elementsThisPatch)
+          numElePrevPatch = len(elementsPrevPatch)
+          id_elements = np.arange(numElePrevPatch, numElePrevPatch+numEleThisPatch,1)
+
+        # print('id_elements = ', id_elements)
+        print('len(id_elements) = ', len(id_elements))
+
+
+        nData = len(sigma_global[0])
+        grid = np.ix_(id_elements,range(nData))
+
+        if use_damage:
+            nData_damage = len(damage_global[0])
+            grid_damage = np.ix_(id_elements,range(nData_damage))
+
+        # continue
+
+
+
+
+
+        # Getting stresses and strains from elements in each layer
+        sigma = sigma_global[grid]
+        strain = strain_global[grid]
+        if use_damage:
+            damage = damage_global[grid_damage]
+
+        # print('sigma = ', sigma)
+
+
+        shapeSigma=np.shape(sigma) # numEle x 3*nGauss
+        shapeStrain=np.shape(strain)
+        if use_damage:
+            shapeDamage=np.shape(damage)
+
+        numEle = shapeSigma[0] 
+
+        # print('numEle = ', numEle)
+
+        # Ranges for stress and strain
+        range0 = np.arange(0,shapeSigma[1],3)
+        range1 = range0+1
+        range2 = range0+2
+
+        # Ranges for damage
+        if use_damage:
+            range0_damage = np.arange(0,shapeDamage[1],9)
+            range1_damage = range0_damage+1
+            range2_damage = range0_damage+2
+            range3_damage = range0_damage+3
+            range4_damage = range0_damage+4
+            range5_damage = range0_damage+5
+            range6_damage = range0_damage+6
+            range7_damage = range0_damage+7
+            range8_damage = range0_damage+8
+
+        # print('range0 = ', range0)
+
+        # Getting quantities in each direction for all layers
+        sigmaXX = sigma[:,np.ix_(range0)]
+        sigmaYY = sigma[:,np.ix_(range1)]
+        sigmaXY = sigma[:,np.ix_(range2)]
+        strainXX = strain[:,np.ix_(range0)]
+        strainYY = strain[:,np.ix_(range1)]
+        strainXY = strain[:,np.ix_(range2)]
+
+        # Getting damage variables (9 in total)
+        if use_damage:
+            damage_0 = damage[:,np.ix_(range0_damage)]
+            damage_1 = damage[:,np.ix_(range1_damage)]
+            damage_2 = damage[:,np.ix_(range2_damage)]
+            damage_3 = damage[:,np.ix_(range3_damage)]
+            damage_4 = damage[:,np.ix_(range4_damage)]
+            damage_5 = damage[:,np.ix_(range5_damage)]
+            damage_6 = damage[:,np.ix_(range6_damage)]
+            damage_7 = damage[:,np.ix_(range7_damage)]
+            damage_8 = damage[:,np.ix_(range8_damage)]
+
+
+        # print('sigmaXX = ', sigmaXX)
+
+        nGauss_3 = int(shapeSigma[1]/Nlayers)
+        if use_damage:
+            nGauss_9 = int(shapeDamage[1]/Nlayers)
+
+        # print('nGauss_3 = ', nGauss_3)
+
+        sigma = np.zeros([Nlayers,numEle,nGauss_3])
+        strain = np.zeros([Nlayers,numEle,nGauss_3])
+        if use_damage:
+            damage = np.zeros([Nlayers,numEle,nGauss_9])
+
+
+
+        for iLayer in range(Nlayers):
+
+          rangeLayer = np.arange(iLayer,int(nGauss_3/3)*Nlayers,Nlayers)
+          if use_damage:
+            rangeLayer_damage = np.arange(iLayer,int(nGauss_9/9)*Nlayers,Nlayers)
+          # if Nlayers == 1:
+          #   rangeLayer = np.arange(iLayer,int(nGauss_3/3),Nlayers)
+          # else:
+          #   rangeLayer = np.arange(iLayer,nGauss_3,Nlayers)
+
+          # print('rangeLayer = ', rangeLayer)
+
+          # Getting stresses and strains corresponding to actual layer 
+          sigmaXX_layer = sigmaXX[:,:,np.ix_(rangeLayer)]
+          sigmaYY_layer = sigmaYY[:,:,np.ix_(rangeLayer)]
+          sigmaXY_layer = sigmaXY[:,:,np.ix_(rangeLayer)]
+
+
+          # print("sigmaXX_layer = ", sigmaXX_layer)
+          # print("sigmaYY_layer = ", sigmaYY_layer)
+          # print("sigmaXY_layer = ", sigmaXY_layer)
+          # exit()
+
+
+          strainXX_layer = strainXX[:,:,np.ix_(rangeLayer)]
+          strainYY_layer = strainYY[:,:,np.ix_(rangeLayer)]
+          strainXY_layer = strainXY[:,:,np.ix_(rangeLayer)]
+
+          # Getting damage variables corresponding to actual layer
+          if use_damage:
+            damage0_layer = damage_0[:,:,np.ix_(rangeLayer_damage)]
+            damage1_layer = damage_1[:,:,np.ix_(rangeLayer_damage)]
+            damage2_layer = damage_2[:,:,np.ix_(rangeLayer_damage)]
+            damage3_layer = damage_3[:,:,np.ix_(rangeLayer_damage)]
+            damage4_layer = damage_4[:,:,np.ix_(rangeLayer_damage)]
+            damage5_layer = damage_5[:,:,np.ix_(rangeLayer_damage)]
+            damage6_layer = damage_6[:,:,np.ix_(rangeLayer_damage)]
+            damage7_layer = damage_7[:,:,np.ix_(rangeLayer_damage)]
+            damage8_layer = damage_8[:,:,np.ix_(rangeLayer_damage)]
+
+
+
+
+          shapeSigma = np.shape(sigmaXX_layer)
+          shapeStrain = np.shape(strainXX_layer)
+          if use_damage:
+            shapeDamage = np.shape(damage0_layer)
+
+          # print('shapeSigma = ', shapeSigma)
+
+          sigmaXX_layer = np.reshape(sigmaXX_layer,[1,shapeSigma[0],shapeSigma[-1]])
+          sigmaYY_layer = np.reshape(sigmaYY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+          sigmaXY_layer = np.reshape(sigmaXY_layer,[1,shapeSigma[0],shapeSigma[-1]])
+
+          strainXX_layer = np.reshape(strainXX_layer,[1,shapeStrain[0],shapeStrain[-1]])
+          strainYY_layer = np.reshape(strainYY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+          strainXY_layer = np.reshape(strainXY_layer,[1,shapeStrain[0],shapeStrain[-1]])
+
+          if use_damage:
+            damage0_layer = np.reshape(damage0_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage1_layer = np.reshape(damage1_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage2_layer = np.reshape(damage2_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage3_layer = np.reshape(damage3_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage4_layer = np.reshape(damage4_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage5_layer = np.reshape(damage5_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage6_layer = np.reshape(damage6_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage7_layer = np.reshape(damage7_layer,[1,shapeDamage[0],shapeDamage[-1]])
+            damage8_layer = np.reshape(damage8_layer,[1,shapeDamage[0],shapeDamage[-1]])
+
+
+
+          # range0 = np.arange(0,int(nGauss_3/3),3)
+          # Ranges for stresses and strains
+          range0 = np.arange(0,int(nGauss_3),3)
+          range1 = np.arange(1,int(nGauss_3),3)
+          range2 = np.arange(2,int(nGauss_3),3)
+
+          # Ranges for damage
+          if use_damage:
+            range0_damage = np.arange(0,int(nGauss_9),9)
+            range1_damage = np.arange(1,int(nGauss_9),9)
+            range2_damage = np.arange(2,int(nGauss_9),9)
+            range3_damage = np.arange(3,int(nGauss_9),9)
+            range4_damage = np.arange(4,int(nGauss_9),9)
+            range5_damage = np.arange(5,int(nGauss_9),9)
+            range6_damage = np.arange(6,int(nGauss_9),9)
+            range7_damage = np.arange(7,int(nGauss_9),9)
+            range8_damage = np.arange(8,int(nGauss_9),9)
+
+
+          # Grids for stresses and strains
+          grid0 = np.ix_([iLayer],range(numEle),range0)
+          grid1 = np.ix_([iLayer],range(numEle),range1)
+          grid2 = np.ix_([iLayer],range(numEle),range2)
+
+
+          # Grids for damage
+          if use_damage:
+            grid0_damage = np.ix_([iLayer],range(numEle),range0_damage)
+            grid1_damage = np.ix_([iLayer],range(numEle),range1_damage)
+            grid2_damage = np.ix_([iLayer],range(numEle),range2_damage)
+            grid3_damage = np.ix_([iLayer],range(numEle),range3_damage)
+            grid4_damage = np.ix_([iLayer],range(numEle),range4_damage)
+            grid5_damage = np.ix_([iLayer],range(numEle),range5_damage)
+            grid6_damage = np.ix_([iLayer],range(numEle),range6_damage)
+            grid7_damage = np.ix_([iLayer],range(numEle),range7_damage)
+            grid8_damage = np.ix_([iLayer],range(numEle),range8_damage)
+
+
+          # Assigning stresses and strains to the arrays
+          sigma[grid0] = sigmaXX_layer
+          sigma[grid1] = sigmaYY_layer
+          sigma[grid2] = sigmaXY_layer
+          strain[grid0] = strainXX_layer
+          strain[grid1] = strainYY_layer
+          strain[grid2] = strainXY_layer
+
+          # Assigning damage variables to array
+          if use_damage:
+            damage[grid0_damage] = damage0_layer
+            damage[grid1_damage] = damage1_layer
+            damage[grid2_damage] = damage2_layer
+            damage[grid3_damage] = damage3_layer
+            damage[grid4_damage] = damage4_layer
+            damage[grid5_damage] = damage5_layer
+            damage[grid6_damage] = damage6_layer
+            damage[grid7_damage] = damage7_layer
+            damage[grid8_damage] = damage8_layer
+
+
+        sigma_patches.append(sigma)
+        strain_patches.append(strain)
+        if use_damage:
+            damage_patches.append(damage)
+
+
+        prevNlayers = Nlayers
+
+
+      # Until here I have the controlPts for each patch and the U vector for each patch (I hope)
+
+    
+      for (surf,i) in zip(surfList,range(len(surfList))):
+        surf = surfList[i]
+
+        shell={}
+
+        Nlayers = Nlayers_patches[i]
+        zLocs = zLocs_list[i]
+
+
+        P = surf.degree_u
+        Q = surf.degree_v
+
+        noPtsX  = surf.ctrlpts_size_u
+        noPtsY  = surf.ctrlpts_size_v
+
+
+        uKnot = surf.knotvector_u
+        vKnot = surf.knotvector_v
+
+        # Recover info for the current patch from the lists
+        controlPts = controlPts_patches[i]
+        weights = [1]*len(controlPts)
+        U = U_patches[i]
+        sigma = sigma_patches[i]
+        strain = strain_patches[i]
+        if use_damage:
+            damage = damage_patches[i]
+
+        print('np.shape(sigma) = ', np.shape(sigma))
+
+
+        shell['p'] = P
+        shell['q'] = Q 
+        shell['uKnot'] = uKnot 
+        shell['vKnot'] = vKnot 
+        shell['noPtsX'] = noPtsX 
+        shell['noPtsY'] = noPtsY 
+        # shell['weights'] = np.transpose(weights)
+        shell['weights'] = weights
+        shell['controlPts'] = controlPts
+        shell['u'] = U 
+        shell['stresses'] = sigma
+        shell['strains'] = strain
+        if use_damage:
+            shell['damage'] = damage
+        shell['nLayers'] = Nlayers
+        shell['zLocs'] = zLocs
+
+
+        matName = f'shell_{i}_{time}.mat'
+        sio.savemat(matName,shell)
+
+        print("Done saving .mat = ", matName)
 
 
 

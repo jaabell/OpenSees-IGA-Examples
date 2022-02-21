@@ -30,21 +30,22 @@ P_iso =  [0.,   0.1,  0.2,  0.25, 0.3,  0.35, 0.4,  0.45, 0.5,  0.55, 0.6,  0.65
 
 import matplotlib.pyplot as plt
 # isotropic
-plt.plot(defA_iso, loadA_iso, 'or', mfc='none',label="Isotropic")
+plt.plot(defA_iso, loadA_iso, 'xr', mfc='none',label="Isotropic")
 plt.plot(wa_iso, P_iso, '-r')
 
 # 0-90-0
-plt.plot(defA_090, loadA_090, 'ob', mfc='none',label="0-90-0")
+plt.plot(defA_090, loadA_090, 'xb', mfc='none',label="0-90-0")
 plt.plot(wA_090, P_090, '-b')
 
 # 90-0-90
-plt.plot(defA_909, loadA_909, 'og', mfc='none',label="90-0-90")
+plt.plot(defA_909, loadA_909, 'xg', mfc='none',label="90-0-90")
 plt.plot(wA_909, P_909, '-g')
 
 
-plt.xlabel('Downward deflection at point A x100')
-plt.ylabel('Load at point A x1000')
+plt.xlabel('Downward deflection at point A (x100)')
+plt.ylabel('Load at point A (x1000)')
 plt.legend()
+plt.grid()
 plt.show()
 
 
@@ -55,22 +56,34 @@ wA=1/10*np.array([0,9.561,15.648,23.164,29.375,36.208,51.499,56.373,61.877,65.49
 uB=1/10*np.array([0,-0.233,-0.922,-2.391,-3.872,-2.154,6.792,10.448,14.905,17.979,20.365,22.321,23.916,25.381,26.631,27.735,28.843,29.772,30.604,31.471,32.299,32.989,33.619,34.272])
 
 
-wA_model=[0.,  0.5, 1.,  1.5, 2.,  2.5, 3.,  3.5, 4.,  4.5, 5.,  5.5, 6.,  6.5, 7.,  7.5, 8.,8.5 ]
-uB_model=[ 0.00000000e+00, -2.93478865e-03, -2.65343936e-02, -8.26224586e-02,-1.68641662e-01, -2.78903054e-01, -3.67905243e-01, -2.44718792e-01,-1.84641637e-02,  2.63652811e-01,  5.88818321e-01,  9.49081397e-01,1.34517611e+00,  1.77114971e+00,  2.21822763e+00,  2.68264343e+00,3.16504727e+00,  3.65964865e+00]
-P_model=[0.,         0.03493715, 0.0626396,  0.08676804, 0.10577594, 0.12559888,0.14842593, 0.17116455, 0.18298411, 0.18827624, 0.19972972, 0.22665398,0.27060447, 0.34036659, 0.45392462, 0.63659561, 0.92032378, 1.35232526]
+P_model = [0.         ,0.03298808 ,0.0581637  ,0.08192049 ,0.1002721  ,0.11816374
+ ,0.13939639 ,0.16273153 ,0.1751334  ,0.17694291 ,0.17877243 ,0.19186039
+ ,0.23843544 ,0.28191085 ,0.34497129 ,0.44329075 ,0.5903244  ,0.81064958
+ ,1.142833  ]
+wA_model=  [0.      ,0.46166 ,0.92332 ,1.38498 ,1.84664 ,2.3083  ,2.76996 ,3.23162 ,3.69328
+ ,4.15494 ,4.6166  ,5.07826 ,5.53992 ,6.00158 ,6.46324 ,6.9249  ,7.38656 ,7.84822
+ ,8.30988]
+uB_model=  [ 0.00000000e+00 ,-2.14521223e-03 ,-2.09898250e-02 ,-6.64810934e-02
+ ,-1.39136601e-01 ,-2.33014633e-01 ,-3.42024430e-01 ,-3.33796696e-01
+ ,-1.63488339e-01  ,7.39685477e-02  ,3.54111574e-01  ,6.64318006e-01
+  ,9.68971724e-01  ,1.33317645e+00  ,1.73274716e+00  ,2.15482131e+00
+  ,2.59736614e+00  ,3.05854348e+00  ,3.53068399e+00]
 
 
 
-plt.plot(wA_model, P_model, 'or', mfc='none',label="-wA")
+
+plt.plot(wA_model, P_model, 'xr', mfc='none',label="-$W_A$")
 plt.plot(wA, 1.2*P, '-r')
 
-plt.plot(uB_model, P_model, 'ob', mfc='none',label="uB")
+plt.plot(uB_model, P_model, 'xb', mfc='none',label="$U_B$")
 plt.plot(uB, 1.2*P, '-b')
 
 
 
 plt.xlabel('Displacements at point A and B (x10)')
-plt.ylabel('Pinched force (x10000)')
+plt.ylabel('Pinching force (x10000)')
+plt.legend()
+plt.grid()
 plt.show()
 
 
@@ -95,13 +108,19 @@ uB =     np.array([0, 0.864      , 1.471 , 1.901 , 2.217 , 2.641 , 2.904 , 3.087
 uC =     np.array([0, 0.872      , 1.493 , 1.946 , 2.293 , 2.792 , 3.106 , 3.310 , 3.452 , 3.556 , 3.632 , 3.688 , 3.718 , 3.580 , 3.518 , 3.452 , 3.410 , 3.378 , 3.353 , 3.332 , 3.313 , 3.297 , 3.283 , 3.269])
 
 
-plt.plot(wA_model, np.array(P_model), 'or', mfc='none')
-plt.plot(uB_model, np.array(P_model), 'ob', mfc='none')
-plt.plot(uC_model, np.array(P_model), 'og', mfc='none')
+plt.plot(wA_model, np.array(P_model), 'xr', mfc='none',label = '$W_A$')
+plt.plot(uB_model, np.array(P_model), 'xb', mfc='none',label = '$-U_B$')
+plt.plot(uC_model, np.array(P_model), 'xg', mfc='none',label = '$-U_C$')
 
 
 plt.plot(wA, P, '-r')
 plt.plot(uB, P, '-b')
 plt.plot(uC, P, '-g')
+
+plt.xlabel('Displacements at point A,B and C')
+plt.ylabel('Pulling force at point A (x10000)')
+
+plt.legend()
+plt.grid()
 
 plt.show()

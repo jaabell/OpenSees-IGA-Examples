@@ -1,5 +1,5 @@
 import os
-from geomdl import NURBS, compatibility, knotvector
+from geomdl import NURBS, compatibility, knotvector, operations, fitting, multi
 import numpy as np
 
 # Fix file path
@@ -69,6 +69,9 @@ def surfFromFile(fileName):
     surf.knotvector_u = knotvector.generate(surf.degree_u, surf.ctrlpts_size_u)
     surf.knotvector_v = knotvector.generate(surf.degree_v, surf.ctrlpts_size_v)
 
+    operations.refine_knotvector(surf,[0,0])
+
+    
 
     
     # test=compatibility.flip_ctrlpts2d(surf.ctrlpts2d)
